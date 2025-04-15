@@ -20,5 +20,10 @@ export default defineConfig({
             }
         }
     },
+    server: {
+        watch: {
+          ignored: ['**/documents/**']
+        }
+    },
     base: '/Simulador-de-estacionamento',
 });
