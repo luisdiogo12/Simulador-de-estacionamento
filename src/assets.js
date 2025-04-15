@@ -11,7 +11,8 @@ export const IS_DEBUG = import.meta.env.DEV; // true em desenvolvimento, false e
 const loader = new GLTFLoader();
 const dracoLoader = new DRACOLoader();
 
-const modelPath = '/models'; // Caminho base para os modelos
+//const modelPath = '/models'; // Caminho base para os modelos
+const modelPath = import.meta.env.BASE_URL + 'models';
 
 // Cache para modelos carregados (evita recarregar o mesmo arquivo múltiplas vezes)
 const modelCache = new Map();

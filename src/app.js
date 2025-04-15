@@ -15,7 +15,7 @@ class App {
         this.mapManager = new MapManager(this.sceneManager, this.physicsManager);
         this.init();
         if (IS_DEBUG) {
-            
+            console.log (import.meta.env);
         }
     }
 
