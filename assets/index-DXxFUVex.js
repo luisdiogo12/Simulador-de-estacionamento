@@ -2348,7 +2348,7 @@ Promise.all([
     }
     const N = new as;
     new Bs;
-    const C = "/models", w = new Map, je = {
+    const C = "/Simulador-de-estacionamento/models", w = new Map, je = {
         car: async (c, e, t)=>{
             if (!w.has("car")) {
                 const i = (await N.loadAsync(`${C}/SUV.glb`)).scene;
