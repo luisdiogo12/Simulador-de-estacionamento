@@ -25,5 +25,5 @@ export default defineConfig({
           ignored: ['**/documents/**']
         }
     },
-    base: '/Simulador-de-estacionamento',
+    base: '/Simulador-de-estacionamento/',
 });
