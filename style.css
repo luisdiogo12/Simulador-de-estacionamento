@@ -1,0 +1,9 @@
+body { 
+	margin: 0px;
+}
+
+canvas.webgl {
+  display: block;
+  width: 100vw;     /* Ocupa toda a largura da janela */
+  height: 100vh;
+}

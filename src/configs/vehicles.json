@@ -1,0 +1,12 @@
+{
+  "vehicles": [
+    {
+      "type": "car",
+      "position": { "x": 0, "y": 5, "z": 0 },
+      "rotation": { "y": 0 },
+      "scale": { "x": 4, "y": 4, "z": 4},
+      "colliderType": "cuboid"
+    }
+
+  ]
+}
