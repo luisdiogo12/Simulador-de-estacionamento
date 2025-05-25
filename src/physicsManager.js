@@ -1,154 +1,174 @@
-import * as THREE from 'three';
-import * as RAPIER from '@dimforge/rapier3d';
-import Stats from 'stats.js';
-//import { DEBUG_CONFIG } from '../../testRapier/src/debug';
+//TODO : talvez diferenciar o tipo de bodies (dynamic, static, kinematic) e coliders (cuboid, ball, etc) em listas diferentes
+import * as THREE from "three";
+import * as RAPIER from "@dimforge/rapier3d";
 
-// TODO : alterar para "import { IS_DEBUG, initDebugListener, updateDebugStats } from './debug.js';" quando o debbuger estiver pronto
-export const IS_DEBUG = import.meta.env.DEV; // true em desenvolvimento, false em produção
+import { sm } from "gameManager";
+import { Car } from "car";
 
+import { RapierDebugRenderer } from "rapierDebug";
+import { IS_DEBUG } from "debugManager";
+
+export const frameRate = 60;
 const gravity = { x: 0.0, y: -9.81, z: 0.0 };
-let debugGeometry, debugLines;
-
 export class PhysicsManager {
-    constructor(sceneManager) {
-        this.world = new RAPIER.World(gravity);
-        this.eventQueue = new RAPIER.EventQueue(true);
-        this.sceneManager = sceneManager;
-        //this.objects = objects;
-        //TODO : ver se preciso disto 
-        //this.dt = 1 / 60;
-        if (IS_DEBUG) {
-                    
+  world;
+  meshes;
+  meshMap;
+
+  movement;
+  rapierDebugRender;
+  constructor(/* sceneManager */) {
+    //this.sceneManager = sm
+    this.world = new RAPIER.World(gravity);
+    this.meshes = [];
+    this.meshMap = new WeakMap();
+
+    // Vetores auxiliares para sincronização
+    this._vector = new THREE.Vector3();
+    this._quaternion = new THREE.Quaternion();
+    this._matrix = new THREE.Matrix4();
+    // Clock para o step
+    this.clock = new THREE.Clock();
+    // Loop de física
+    //this._interval = setInterval(() => this._step(), 1000 / frameRate);
+
+    this.movement = {
+      forward: 0,
+      right: 0,
+      brake: 0,
+      reset: false,
+      accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
+      brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
+    };
+    this.eventQueue = new RAPIER.EventQueue(true);
+
+    //this.objects = objects;
+    //TODO : ver se preciso disto
+    //this.dt = 1 / 60;
+    /* if (IS_DEBUG) {
+      this.rapierDebugRender = new RapierDebugRenderer(
+        this.sceneManager.sceneGraph
+      );
+      console.log("RapierDebugRenderer initialized");
+    } else {
+      this.rapierDebugRender = null;
+      console.log("RapierDebugRenderer not initialized");
+    } */
+  }
+  //TODO :  talvez a criação dos colliders e bodies seja feita aqui ou fazer mais funcoes mais especializadas
+  /* 
+  como por exemplo de uso: 
+  physicsManager.addCompoundMesh(bigrock, {
+    body: {
+      type:    'dynamic',
+      translation: bigrock.position.toArray(),      // [x,y,z]
+      rotation:    bigrock.quaternion.toArray()      // [x,y,z,w]
+    },
+    colliders: [
+      { shape: 'cuboid', halfExtents: [0.25,0.25,0.25], translation: mini_rock1.position.toArray() },
+      { shape: 'cuboid', halfExtents: [0.1,0.1,0.1],   translation: mini_rock2.position.toArray() },
+      { shape: 'cuboid', halfExtents: [0.1,0.1,0.1],   translation: mini_rock3.position.toArray() },
+      { shape: 'cuboid', halfExtents: [0.2,0.2,0.2],   translation: mini_rock4.position.toArray() },
+    ],
+    name: 'bigrock'
+  }); 
+  ou createBody(), ou um addMesh que dado RAPIER.RigidBodyDesc e RAPIER.ColliderDesc cria o body e collider
+  ou uma funcao que dado uma mesh cria as descrições dos colliders e bodies e depois chama o addMesh
+  */
+
+  addScene(scene) {
+    //TODO
+    scene.traverse(function (child) {
+      if (child.isMesh) {
+        const physics = child.userData.physics;
+
+        if (physics) {
+          //addMesh(child, physics.mass, physics.restitution);
         }
-    }
-
-    //TODO : melhorar os colideres do chão, de modo a incluir formais mais complexas, experimentar Trimesh
-    addGround(ground, bodyType = 'fixed', colliderType = 'cuboid') {
-        const groundBodyDesc = RAPIER.RigidBodyDesc.fixed(); // descriptor para corpo fixo
-        groundBodyDesc.setTranslation(0, 0, 0);//TODO : alterar aqui para uma variavel 
-        const groundBody = this.world.createRigidBody(groundBodyDesc);
-        const groundColliderDesc = RAPIER.ColliderDesc.cuboid(80, 0.5, 48); //TODO : alterar aqui para uma variavel // Half-extents (metade do tamanho)
-        groundColliderDesc.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
-        const groundCollider = this.world.createCollider(groundColliderDesc, groundBody);
-        ground.userData.physicsBody = groundBody; 
-        ground.userData.collisions = new Set(); // para em cada objeto saber com quem colidiu
-    }
-//FIXME : metodo provisorio
-    addCar(car){
-        const globalPos = new THREE.Vector3();
-        const globalQuat = new THREE.Quaternion();
-        car.getWorldPosition(globalPos);
-        car.getWorldQuaternion(globalQuat);
-        if(IS_DEBUG){
-            console.log(car.name , 'position:', globalPos);
-            console.log(car.name , 'quaternion:', globalQuat);
-        }
-
-        const bodyDesc = RAPIER.RigidBodyDesc.dynamic();
-        bodyDesc.setTranslation(globalPos.x, globalPos.y, globalPos.z);
-        bodyDesc.setRotation(globalQuat);
-        bodyDesc.setAdditionalMassProperties(
-            1000,                           // mass
-            { x: 0, y: 0, z: -4 },           // centerOfMass
-            { x: 1453.3, y: 1666.7, z: 453.3 },  // Momentos de inércia aproximados (em kg·m²)
-            { w: 1, x: 0, y: 0, z: 0 }           // Quat. identidade para o tensor (alinhado com os eixos do carro)
-          );
-        const body = this.world.createRigidBody(bodyDesc);
-        const colliderDesc = RAPIER.ColliderDesc.cuboid(4, 3.5, 8); 
-        colliderDesc.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
-        colliderDesc.setTranslation(0,3,0); // para deslocar o colisor
-        colliderDesc.setDensity(0); // o colisor não contribuirá com massa
-        const groundCollider = this.world.createCollider(colliderDesc, body);
-        car.userData.physicsBody = body; 
-        car.userData.collisions = new Set(); 
-    }
-    #createBody(mesh, bodyType = 'dynamic', colliderType = 'cuboid') {
-         const bodyDesc = bodyType === 'fixed' ? 
-                    RAPIER.RigidBodyDesc.fixed() : 
-                    RAPIER.RigidBodyDesc.dynamic();
-    }
-    #getColliderDesc(type, scale) {
-        switch(type) {
-            case 'sphere':
-                return RAPIER.ColliderDesc.ball(scale.x);
-            case 'cylinder':
-                return RAPIER.ColliderDesc.cylinder(scale.y, scale.x);
-            /* case 'trimesh':
-                return this.createTrimeshCollider(scale); */
-            default: // cuboid
-                return RAPIER.ColliderDesc.cuboid(
-                    scale.x / 2,
-                    scale.y / 2,
-                    scale.z / 2
-                );
-        }
-    }
-    addConstraint(constraint) {
-        /* this.world.addConstraint(constraint); */
-    }
-
-    update() {
-        this.world.step(this.eventQueue);
-    }
-    syncGraphics() {
-        this.update();
-        this.sceneManager.sceneGraph.traverse((node) => {
-            if (/* node.isMesh && */ node.userData.physicsBody) {
-                const body = node.userData.physicsBody;
-                // Se for um corpo 'fixed', não sincroniza
-                if (body.bodyType() === RAPIER.RigidBodyType.Fixed) {
-                return; 
-                }
-                // faça a sincronização de posição/rotação
-                // 1) Pega a posição global do body
-                const t = body.translation(); 
-                const worldPos = new THREE.Vector3(t.x, t.y, t.z);
-
-                // 2) Converte para espaço local do pai
-                node.parent.worldToLocal(worldPos);
-                node.position.copy(worldPos);
-
-                // 3) Pega rotação global do body
-                const worldRot = body.rotation();
-                const worldQuat = new THREE.Quaternion(worldRot.x, worldRot.y, worldRot.z, worldRot.w);
-
-                // 4) Precisamos remover a rotação do pai
-                const parentQuat = new THREE.Quaternion();
-                node.parent.getWorldQuaternion(parentQuat);
-                parentQuat.invert();
-
-                // localRot = inv(parentRot) * worldRot
-                node.quaternion.copy(parentQuat).multiply(worldQuat);
-            }
-        });       
-        
-        if (IS_DEBUG){
-            const { vertices, colors } = this.world.debugRender();
-            // Atualizar geometria
-            debugGeometry.setAttribute(
-              'position', 
-              new THREE.BufferAttribute(vertices, 3)
-            );
-            debugGeometry.setAttribute(
-              'color', 
-              new THREE.BufferAttribute(
-                new Uint8Array(colors).map(c => c / 255), 
-                3,
-                true
-              )
-            );
-            debugGeometry.attributes.position.needsUpdate = true;
-            debugGeometry.attributes.color.needsUpdate = true;    
-        }
-    }
-    initDebugRenderer() {
-        debugGeometry = new THREE.BufferGeometry();
-        const material = new THREE.LineBasicMaterial({
-          vertexColors: true,
-          linewidth: 10
-        });
-        
-        debugLines = new THREE.LineSegments(debugGeometry, material);
-        this.sceneManager.sceneGraph.add(debugLines);
       }
+    });
+  }
+  addMesh(mesh, body, name) {
+    //TODO: testar
+    this.meshes.push(mesh);
+    this.meshMap.set(mesh, body);
+    if (!mesh.userData) {
+      mesh.userData = {};
+    }
+    if (!mesh.userData.physics) {
+      mesh.userData.physics = { body: body, collisions: new Set() };
+    } else {
+      mesh.userData.physics.body = body; // Atualiza o body
+      if (!mesh.userData.physics.collisions) {
+        mesh.userData.physics.collisions = new Set(); // Garante que collisions exista
+      }
+    }
+    mesh.userData.name = name;
+  }
+  addRoadTiles(roadGroup){
+    //TODO
+  }
+  addConstraint(constraint) {
+    /* this.world.addConstraint(constraint); */
+  }
+  logWorldState() {
+    console.log("=== RigidBodies no Mundo ===");
+    this.world.bodies.forEach((body, handle) => {
+      console.log(`Body ${handle}:`, body.translation(), body.colliders());
+    });
+
+    console.log("=== Colliders no Mundo ===");
+    this.world.colliders.forEach((collider, handle) => {
+      console.log(`Collider ${handle}:`, collider.shape);
+    });
+  }
+
+  //_step()
+  step(dt) {
+    //this.world.timestep = this.clock.getDelta();
+    this.world.timestep = dt;
+    this.world.step();
+
+    /* this.car.chassisMesh.position.copy(this.car.chassisBody.translation());
+    this.car.chassisMesh.quaternion.copy(this.car.chassisBody.rotation()); */
+
+    //Sync meshes
+    for (let mesh of this.meshes) {
+      const body = this.meshMap.get(mesh);
+      if (!body) continue;
+
+      if (mesh.isInstancedMesh) {
+        const array = mesh.instanceMatrix.array;
+        const bodies = body; // assume um array de bodies
+        for (let j = 0; j < bodies.length; j++) {
+          const b = bodies[j];
+          const pos = b.translation();
+          this._quaternion.copy(b.rotation());
+          this._matrix
+            .compose(pos, this._quaternion, this._vector)
+            .toArray(array, j * 16);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.computeBoundingSphere();
+      } else {
+        mesh.position.copy(body.translation());
+        mesh.quaternion.copy(body.rotation());
+      }
+    }
+    /* if (IS_DEBUG) {
+      this.rapierDebugRender.update();
+      //this.logWorldState();
+      this.world.forEachRigidBody((body) => {
+        console.log(
+          `[RigidBody] ${body.userData?.name || "???"}`,
+          body.translation()
+        );
+      });
+
+      // lista todos os colisores
+      // this.world.forEachCollider((collider, handle) => {
+      //  console.log("Collider", handle, collider.shape(), collider.body());
+      //}); 
+    } */
+  }
 }
