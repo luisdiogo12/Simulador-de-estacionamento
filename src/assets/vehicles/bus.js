@@ -6,7 +6,7 @@ import { bool } from "three/tsl";
 import { IS_DEBUG } from "debugManager";
 
 //TODO :  por variaveis como parametros da classe
-const mass = 10;
+const mass = 20;
 const restitution = 0.8;
 const wheelSuspensionStiffness = 24;
 const wheelFrictionSlip = 1000;
@@ -18,6 +18,16 @@ const chassisOpacity = 0.9;
 const wheelColor = 0x404040;
 const wheelTransparency = true;
 const wheelOpacity = 0.9;
+
+const chassisSize = new THREE.Vector3(2.5, 3, 10);
+const wheelRadius = 0.5;
+const wheelWidth = 0.4;
+const wheelsPositions = [
+  { x: -1.2, y: -1, z: -3.2 },
+  { x: 1.2, y: -1, z: -3.2 },
+  { x: -1.2, y: -1, z: 3.2 },
+  { x: 1.2, y: -1, z: 3.2 },
+];
 
 export class Bus {
   rapierDebugRender;
@@ -46,9 +56,9 @@ export class Bus {
     this.world = world;
     this.scene = scene;
     this.options = {
-      chassisSize: new THREE.Vector3(2, 1, 4),
-      wheelRadius: 0.3,
-      wheelWidth: 0.4,
+      chassisSize: chassisSize,
+      wheelRadius: wheelRadius,
+      wheelWidth: wheelWidth,
       ...options,
     };
 
@@ -114,14 +124,8 @@ export class Bus {
 
   initWheels() {
     this.wheels = [];
-    const positions = [
-      { x: -1, y: 0, z: -1.5 },
-      { x: 1, y: 0, z: -1.5 },
-      { x: -1, y: 0, z: 1.5 },
-      { x: 1, y: 0, z: 1.5 },
-    ];
 
-    positions.forEach((pos, index) => {
+    wheelsPositions.forEach((pos, index) => {
       this.addWheel(index, pos);
     });
     this.controller.setWheelSteering(0, Math.PI / 4);

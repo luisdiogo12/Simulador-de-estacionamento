@@ -178,7 +178,7 @@ class Car {
           RAPIER.RigidBodyDesc.dynamic()
             .setTranslation(...position)
             .setCanSleep(false)
-            //.setAdditionalMass(1000)
+          //.setAdditionalMass(1000)
           /* .setAdditionalMassProperties(
               1000, // mass
               { x: 0, y: 0, z: -4 }, // centerOfMass
@@ -220,6 +220,7 @@ class Car {
             .setCanSleep(false)
         );
 
+        //SECTION convexhull from all meshes in the carMesh group
         // create a convexhull from all meshes in the carMesh group
         const v = new THREE.Vector3();
         let positions = [];
@@ -243,6 +244,7 @@ class Car {
           .setRestitution(0.5)
           .setFriction(3)
           .setCollisionGroups(131073);
+        //!SECTION
         const wheelBLShape = RAPIER.ColliderDesc.cylinder(0.1, 0.3)
           .setRotation(
             new THREE.Quaternion().setFromAxisAngle(
@@ -376,8 +378,8 @@ class Car {
         let targetSteer = 0;
         let stiffness = 0;
         let damping = 0;
-        let min_limit = -0.00;
-        let max_limit = 0.00;
+        let min_limit = -0.0;
+        let max_limit = 0.0;
         let contacts = true;
         this.wheelFLSus.configureMotorPosition(targetSteer, stiffness, damping); // Rigidez de 20.000, amortecimento de 2.500
         this.wheelFLSus.setLimits(min_limit, max_limit); //min: number, max: number

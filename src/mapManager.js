@@ -42,6 +42,11 @@ export class MapManager {
       );
       if (asset) {
         asset.name = ground_tile.type;
+        asset.traverse((obj) => {
+          if (obj.isMesh) {
+            obj.receiveShadow = true;
+          }
+        });
         ground.add(asset);
       }
     }

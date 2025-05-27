@@ -11,6 +11,7 @@ import mapsData from "configs/maps.json";
 
 import { IS_DEBUG } from "debugManager";
 import {RapierDebugRenderer} from "rapierDebug";
+  import Stats from "three/addons/libs/stats.module.js";
 
 
 export let mm, pm, sm, vm;
@@ -28,6 +29,11 @@ export class GameManager {
     //
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
+    if (IS_DEBUG) {
+      this.stats = new Stats();
+      this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb
+      document.body.appendChild(this.stats.dom);
+    }
   }
 
   async start() {
@@ -46,6 +52,9 @@ export class GameManager {
   }
 
   _loop = (nowMs) => {
+    if (IS_DEBUG) {
+      this.stats.begin();
+    }
     const now = nowMs / 1000; // seconds
     let frameTime = now - this._lastTime;
     this._lastTime = now;
@@ -74,6 +83,9 @@ export class GameManager {
     if (this.currentLevel.rapierDebugRender)
       this.currentLevel.rapierDebugRender.update();
 
+    if (IS_DEBUG) {
+      this.stats.end();
+    }
     //+: queue next frame
     this._rafId = requestAnimationFrame(this._loop);
   };
@@ -124,13 +136,13 @@ export class GameManager {
       }
       this.currentLevel.sm.enableFollow(); //+: assim que algum comando é detectado, ativa o follow da camera
       if ("forward" in mv) {
-        if (event.key === "w" || event.key === "ArrowUp") {
+        if (event.key === "w" ) {
           this.currentLevel.vm.movement.forward = -1;
           if (IS_DEBUG) {
             console.log("forward");
           }
         }
-        if (event.key === "s" || event.key === "ArrowDown") {
+        if (event.key === "s" ) {
           this.currentLevel.vm.movement.forward = 1;
           if (IS_DEBUG) {
             console.log("backward");
@@ -138,16 +150,44 @@ export class GameManager {
         }
       }
       if ("right" in mv) {
-        if (event.key === "a" || event.key === "ArrowLeft") {
+        if (event.key === "a" ) {
           this.currentLevel.vm.movement.right = 1;
           if (IS_DEBUG) {
             console.log("left");
           }
         }
-        if (event.key === "d" || event.key === "ArrowRight") {
+        if (event.key === "d" ) {
           this.currentLevel.vm.movement.right = -1;
           if (IS_DEBUG) {
             console.log("right");
+          }
+        }
+      }
+      if ("appendixUp" in mv ) {
+        if (event.key === "ArrowUp") {
+          this.currentLevel.vm.movement.appendixUp = -1;
+          if (IS_DEBUG) {
+            console.log("appendix down");
+          }
+        }
+        if (event.key === "ArrowDown") {
+          this.currentLevel.vm.movement.appendixUp = 1;
+          if (IS_DEBUG) {
+            console.log("appendix up");
+          }
+        }
+      }
+      if ("appendixRight" in mv ) {
+        if (event.key === "ArrowLeft") {
+          this.currentLevel.vm.movement.appendixRight = -1;
+          if (IS_DEBUG) {
+            console.log("appendix down");
+          }
+        }
+        if (event.key === "ArrowRight") {
+          this.currentLevel.vm.movement.appendixRight = 1;
+          if (IS_DEBUG) {
+            console.log("appendix up");
           }
         }
       }
@@ -174,9 +214,8 @@ export class GameManager {
       if (
         "forward" in mv &&
         (event.key === "w" ||
-          event.key === "s" ||
-          event.key === "ArrowUp" ||
-          event.key === "ArrowDown")
+          event.key === "s" 
+          )
       ) {
         this.currentLevel.vm.movement.forward = 0;
         if (IS_DEBUG) {
@@ -186,15 +225,37 @@ export class GameManager {
       if (
         "right" in mv &&
         (event.key === "a" ||
-          event.key === "d" ||
-          event.key === "ArrowLeft" ||
-          event.key === "ArrowRight")
+          event.key === "d" 
+          )
       ) {
         this.currentLevel.vm.movement.right = 0;
         if (IS_DEBUG) {
           console.log("stop left");
         }
       }
+      if (
+        "appendixUp" in mv &&
+        (
+          event.key === "ArrowLeft" ||
+          event.key === "ArrowRight")
+      ) {
+        this.currentLevel.vm.movement.appendixUp = 0;
+        if (IS_DEBUG) {
+          console.log("stop appendixUp");
+        }
+      }
+      if (
+        "appendixRight" in mv &&
+        (
+          event.key === "ArrowLeft" ||
+          event.key === "ArrowRight")
+      ) {
+        this.currentLevel.vm.movement.appendixRight = 0;
+        if (IS_DEBUG) {
+          console.log("stop appendixRight");
+        }
+      }
+
       if ("reset" in mv && event.key === "r") {
         this.currentLevel.vm.movement.reset = false;
         if (IS_DEBUG) {

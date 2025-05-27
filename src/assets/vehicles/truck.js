@@ -2,7 +2,6 @@ import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d";
 import { bool } from "three/tsl";
 
-
 import { IS_DEBUG } from "debugManager";
 
 //TODO :  por variaveis como parametros da classe
@@ -19,6 +18,15 @@ const wheelColor = 0x404040;
 const wheelTransparency = true;
 const wheelOpacity = 0.9;
 
+const chassisSize = new THREE.Vector3(2.5, 3, 18);
+const wheelRadius = 0.5;
+const wheelWidth = 0.4;
+const wheelsPositions = [
+  { x: -1.2, y: -1, z: -7.3 },
+  { x: 1.2, y: -1, z: -7.3 },
+  { x: -1.2, y: -1, z: 8 },
+  { x: 1.2, y: -1, z: 8 },
+];
 export class Truck {
   rapierDebugRender;
   world;
@@ -30,7 +38,7 @@ export class Truck {
   controller;
   wheels;
   movement;
-  constructor(scene, world, options={}, rapierDebugRender) {
+  constructor(scene, world, options = {}, rapierDebugRender) {
     if (IS_DEBUG && !rapierDebugRender) {
       console.warn("rapierDebugRender não foi passado para a classe Car.");
     }
@@ -48,9 +56,9 @@ export class Truck {
     this.world = world;
     this.scene = scene;
     this.options = {
-      chassisSize: new THREE.Vector3(2, 1, 4),
-      wheelRadius: 0.3,
-      wheelWidth: 0.4,
+      chassisSize: chassisSize,
+      wheelRadius: wheelRadius,
+      wheelWidth: wheelWidth,
       ...options,
     };
 
@@ -65,14 +73,17 @@ export class Truck {
 
   initChassis() {
     // Mesh Three.js
+    const chassisMaterial = new THREE.MeshPhongMaterial({
+      color: chassisColor,
+      transparent: chassisTransparency,
+      opacity: chassisOpacity,
+    });
     this.chassisMesh = new THREE.Mesh(
       new THREE.BoxGeometry(...this.options.chassisSize.toArray()),
-      new THREE.MeshPhongMaterial({
-        color: chassisColor,
-        transparent: chassisTransparency,
-        opacity: chassisOpacity,
-      })
+      chassisMaterial
     );
+    //+: Provisorio bucket
+
     if (this.options.chassisPosition) {
       this.chassisMesh.position.copy(this.options.chassisPosition);
     } else {
@@ -116,14 +127,8 @@ export class Truck {
 
   initWheels() {
     this.wheels = [];
-    const positions = [
-      { x: -1, y: 0, z: -1.5 },
-      { x: 1, y: 0, z: -1.5 },
-      { x: -1, y: 0, z: 1.5 },
-      { x: 1, y: 0, z: 1.5 },
-    ];
 
-    positions.forEach((pos, index) => {
+    wheelsPositions.forEach((pos, index) => {
       this.addWheel(index, pos);
     });
     this.controller.setWheelSteering(0, Math.PI / 4);

@@ -7,108 +7,45 @@
     "ground_middle": { "x": 0, "y": 0, "z": 0 },
     "ground_tiles": [
       {
-        "type": "grass",
-        "position": { "x": -64, "y": 0, "z": -32 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "grass",
-        "position": { "x": -32, "y": 0, "z": -32 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
         "type": "road",
-        "position": { "x": 0, "y": 0, "z": -32 },
+        "position": { "x": 0, "y": 0, "z": 0 },
         "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "grass",
-        "position": { "x": 32, "y": 0, "z": -32 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "grass",
-        "position": { "x": 64, "y": 0, "z": -32 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "road",
-        "position": { "x": -64, "y": 0, "z": 0 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 0 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "road",
-        "position": { "x": -32, "y": 0, "z": 0 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 0 },
+        "rotation": { "x":0, "y": 1.5708, "z":0 },
         "scale": { "x": 1, "y": 1, "z": 1 }
       },
       {
         "type": "road_junction_left_right",
-        "position": { "x": 0, "y": 0, "z": 0 },
+        "position": { "x": 0, "y": 0, "z": 1 },
         "colliderType": "cuboid",
-        "rotation": { "y": 0 },
+        "rotation": { "x": 0, "y": 1.5708, "z": 0 },
         "scale": { "x": 1, "y": 1, "z": 1 }
       },
       {
-        "type": "road",
-        "position": { "x": 32, "y": 0, "z": 0 },
+        "type": "road_junction_right",
+        "position": { "x": 0, "y": 0, "z": 2 },
         "colliderType": "cuboid",
-        "rotation": { "y": 0 },
+        "rotation": { "x": 0, "y": 1.5708, "z": 0 },
         "scale": { "x": 1, "y": 1, "z": 1 }
       },
       {
-        "type": "road",
-        "position": { "x": 64, "y": 0, "z": 0 },
+        "type": "road_turn_right",
+        "position": { "x": 1, "y": 0, "z": 1 },
         "colliderType": "cuboid",
-        "rotation": { "y": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
         "scale": { "x": 1, "y": 1, "z": 1 }
       },
       {
-        "type": "grass",
-        "position": { "x": -64, "y": 0, "z": 32 },
+        "type": "road_turn_right",
+        "position": { "x": 1, "y": 0, "z": 2 },
         "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
+        "rotation": { "x": 0, "y": -1.5708, "z": 0 },
         "scale": { "x": 1, "y": 1, "z": 1 }
       },
       {
-        "type": "grass",
-        "position": { "x": -32, "y": 0, "z": 32 },
+        "type": "park1",
+        "position": { "x": 0, "y": 0, "z": -1 },
         "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "road",
-        "position": { "x": 0, "y": 0, "z": 32 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "grass",
-        "position": { "x": 32, "y": 0, "z": 32 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
-        "scale": { "x": 1, "y": 1, "z": 1 }
-      },
-      {
-        "type": "grass",
-        "position": { "x": 64, "y": 0, "z": 32 },
-        "colliderType": "cuboid",
-        "rotation": { "y": 1.5708 },
+        "rotation": { "x": 0, "y": 1.5708, "z": 0 },
         "scale": { "x": 1, "y": 1, "z": 1 }
       }
     ]

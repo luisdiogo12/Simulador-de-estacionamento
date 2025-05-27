@@ -6,7 +6,7 @@ import { bool } from "three/tsl";
 import { IS_DEBUG } from "debugManager";
 
 //TODO :  por variaveis como parametros da classe
-const mass = 10;
+const mass = 100;
 const restitution = 0.8;
 const wheelSuspensionStiffness = 24;
 const wheelFrictionSlip = 1000;
@@ -18,6 +18,21 @@ const chassisOpacity = 0.9;
 const wheelColor = 0x404040;
 const wheelTransparency = true;
 const wheelOpacity = 0.9;
+
+const chassisSize = new THREE.Vector3(2.5, 2, 4);
+const wheelRadius = 0.5;
+const wheelWidth = 0.4;
+const wheelsPositions = [
+  { x: -1.2, y: -0.5, z: -1.5 },
+  { x: 1.2, y: -0.5, z: -1.5 },
+  { x: -1.2, y: -0.5, z: 0 },
+  { x: 1.2, y: -0.5, z: 0 },
+  { x: -1.2, y: -0.5, z: 1.5 },
+  { x: 1.2, y: -0.5, z: 1.5 },
+];
+const bladeWidth = 4;
+const bladeHeight = 2; //aresta de 2.8284
+const bladeDepth = 3;
 
 export class Bulldozer {
   rapierDebugRender;
@@ -47,9 +62,9 @@ export class Bulldozer {
     this.world = world;
     this.scene = scene;
     this.options = {
-      chassisSize: new THREE.Vector3(2, 1, 4),
-      wheelRadius: 0.3,
-      wheelWidth: 0.4,
+      chassisSize: chassisSize,
+      wheelRadius: wheelRadius,
+      wheelWidth: wheelWidth,
       ...options,
     };
 
@@ -64,20 +79,45 @@ export class Bulldozer {
 
   initChassis() {
     // Mesh Three.js
+    const chassisMaterial = new THREE.MeshPhongMaterial({
+      color: chassisColor,
+      transparent: chassisTransparency,
+      opacity: chassisOpacity,
+    });
     this.chassisMesh = new THREE.Mesh(
       new THREE.BoxGeometry(...this.options.chassisSize.toArray()),
-      new THREE.MeshPhongMaterial({
-        color: chassisColor,
-        transparent: chassisTransparency,
-        opacity: chassisOpacity,
-      })
+      chassisMaterial
     );
+    //+: Provisorio para fazer a blade
+    const triShape = new THREE.Shape();
+    triShape.moveTo(0, 0);
+    triShape.lineTo(bladeWidth, 0);
+    triShape.lineTo(bladeWidth / 2, bladeHeight);
+    triShape.closePath();
+    const extrudeSettings = {
+      steps: 1, // n subdivisoes para o extrude
+      depth: bladeDepth, // "espessura" do prisma
+      bevelEnabled: false, // sem chanfros
+    };
+    const bladeGeometry = new THREE.ExtrudeGeometry(triShape, extrudeSettings);
+    this.blade = new THREE.Mesh(bladeGeometry, chassisMaterial);
+    this.blade.rotation.y = Math.PI / 2;
+    this.blade.rotation.z = 3*Math.PI / 4; 
+    this.scene.add(this.blade);
+
+
     if (this.options.chassisPosition) {
       this.chassisMesh.position.copy(this.options.chassisPosition);
+      this.blade.position.set(
+        this.options.chassisPosition.x - bladeDepth / 2,
+        this.options.chassisPosition.y -2 ,
+        this.options.chassisPosition.z - 5.2
+      );
     } else {
       this.chassisMesh.position.set(0, 3, 0);
     }
     this.chassisMesh.castShadow = true;
+    //this.blade.position.set(0,0,0);
     this.scene.add(this.chassisMesh);
 
     //physics.addMesh(mesh, 10, 0.8);
@@ -115,14 +155,9 @@ export class Bulldozer {
 
   initWheels() {
     this.wheels = [];
-    const positions = [
-      { x: -1, y: 0, z: -1.5 },
-      { x: 1, y: 0, z: -1.5 },
-      { x: -1, y: 0, z: 1.5 },
-      { x: 1, y: 0, z: 1.5 },
-    ];
+    
 
-    positions.forEach((pos, index) => {
+    wheelsPositions.forEach((pos, index) => {
       this.addWheel(index, pos);
     });
     this.controller.setWheelSteering(0, Math.PI / 4);

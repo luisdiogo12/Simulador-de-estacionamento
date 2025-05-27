@@ -13,12 +13,21 @@ const wheelFrictionSlip = 1000;
 
 //FIXME provisorio
 const chassisColor = 0xff0000;
-const chassisTransparency = true;
+const chassisTransparency = false;
 const chassisOpacity = 0.9;
 const wheelColor = 0x404040;
 const wheelTransparency = true;
 const wheelOpacity = 0.9;
 
+const chassisSize = new THREE.Vector3(2, 1, 4);
+const wheelRadius = 0.5;
+const wheelWidth = 0.4;
+const wheelsPositions = [
+  { x: -1, y: 0, z: -1.5 },
+  { x: 1, y: 0, z: -1.5 },
+  { x: -1, y: 0, z: 1.5 },
+  { x: 1, y: 0, z: 1.5 },
+];
 export class Car {
   rapierDebugRender;
   world;
@@ -46,9 +55,9 @@ export class Car {
     this.world = world;
     this.scene = scene;
     this.options = {
-      chassisSize: new THREE.Vector3(2, 1, 4),
-      wheelRadius: 0.3,
-      wheelWidth: 0.4,
+      chassisSize: chassisSize,
+      wheelRadius: wheelRadius,
+      wheelWidth: wheelWidth,
       ...options,
     };
 
@@ -74,14 +83,12 @@ export class Car {
     if (this.options.chassisPosition) {
       this.chassisMesh.position.copy(this.options.chassisPosition);
     } else {
-      console.warn(
-        "Car.initChassis: options.chassisPosition não definido."
-      );
+      console.warn("Car.initChassis: options.chassisPosition não definido.");
     }
     /* if (this.options.chassisRotation) {
       this.chassisMesh.rotation.copy(this.options.chassisRotation);
     } */
-    this.chassisMesh.castShadow = true;
+    this.chassisMesh.castShadow = true; //TODO isto devia estar em sceneManager.addToScene
     this.scene.add(this.chassisMesh);
 
     //physics.addMesh(mesh, 10, 0.8);
@@ -121,14 +128,9 @@ export class Car {
 
   initWheels() {
     this.wheels = [];
-    const positions = [
-      { x: -1, y: 0, z: -1.5 },
-      { x: 1, y: 0, z: -1.5 },
-      { x: -1, y: 0, z: 1.5 },
-      { x: 1, y: 0, z: 1.5 },
-    ];
 
-    positions.forEach((pos, index) => {
+
+    wheelsPositions.forEach((pos, index) => {
       this.addWheel(index, pos);
     });
     this.controller.setWheelSteering(0, Math.PI / 4);

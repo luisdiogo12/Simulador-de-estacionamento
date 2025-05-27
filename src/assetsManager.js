@@ -26,20 +26,29 @@ const modelPath = import.meta.env.BASE_URL + "models"; //const modelPath = '/mod
 //const dracoLoader = new DRACOLoader();
 //const modelCache = new Map(); // Cache para modelos carregados (evita recarregar o mesmo arquivo múltiplas vezes)
 
+const tileSize = { x: 49, y: 2, z: 49 }; //tamanho do quadriculado
+const tileScale = {x:1/3,y:1/3,z:1/3}; //escala a ser aplicada ao quadriculado - 49 -> 12.25
+const posFactor = {
+  x: tileSize.x * tileScale.x,
+  y: tileSize.y * tileScale.y,
+  z: tileSize.z * tileScale.z,
+};
+
 class AssetManager {
   constructor() {
     this.loader = new GLTFLoader();
     this.dracoLoader = new DRACOLoader();
     this.modelCache = new Map();
     this.assets = {
+      //TODO eliminar modelos deprecados
       car: this._loadGLTF("SUV.glb"),
-      road: this._loadGLTF("road.gltf"),
-      road2: this._loadGLTF("road2.gltf"),
-      road_turn_left: this._loadGLTF("road_clean.gltf"),
-      road_turn_right: this._loadGLTF("road_clean.gltf"),
-      road_junction_left: this._loadGLTF("road_clean.gltf"),
-      road_junction_right: this._loadGLTF("road_clean.gltf"),
-      road_junction_left_right: this._loadGLTF("road_clean.gltf"),
+      road: this._loadGLTFtiles("road/road_49.gltf"),
+      road_turn_left: this._loadGLTFtiles("road/road_TL_49.gltf"),
+      road_turn_right: this._loadGLTFtiles("road/road_TR_49.gltf"),
+      road_junction_left: this._loadGLTFtiles("road/road_JL_49.gltf"),
+      road_junction_right: this._loadGLTFtiles("road/road_JR_49.gltf"),
+      road_junction_left_right: this._loadGLTFtiles("road/road_I_49.gltf"),
+      park1: this._loadGLTFtiles("road/park1_49.gltf"),
       grass: this._loadGLTF("erva.gltf"),
       rock: this._makePrimitive(() => new THREE.BoxGeometry(1, 1, 1)),
       tree: this._makeTree.bind(this),
@@ -52,10 +61,26 @@ class AssetManager {
     this.pm = physicsManager;
   }
 
+  _loadGLTFtiles(filename) {
+    return async (x, y, z) => {
+      if (!this.modelCache.has(filename)) {
+        const glb = await this.loader.loadAsync(`${modelPath}/${filename}`);
+        console.log(`Loaded model- glb:`, glb);
+        const scene = glb.scene;
+        scene.matrixAutoUpdate = true;
+        this.modelCache.set(filename, scene);
+      }
+      const clone = this.modelCache.get(filename).clone();
+      clone.scale.set(tileScale.x, tileScale.y, tileScale.z);
+      clone.position.set(x * posFactor.x, y * posFactor.y, z * posFactor.z);
+      return clone;
+    };
+  }
   _loadGLTF(filename) {
     return async (x, y, z) => {
       if (!this.modelCache.has(filename)) {
         const glb = await this.loader.loadAsync(`${modelPath}/${filename}`);
+        console.log(`Loaded model- glb:`, glb);
         const scene = glb.scene;
         scene.matrixAutoUpdate = true;
         this.modelCache.set(filename, scene);
@@ -119,7 +144,7 @@ class AssetManager {
     x,
     y,
     z,
-    rotation = { y: 0 },
+    rotation = { x: 0,y: 0, z: 0 },
     scale = { x: 1, y: 1, z: 1 }
   ) {
     const creator = this.assets[type];
@@ -128,8 +153,11 @@ class AssetManager {
       return;
     }
     const instance = await creator(x, y, z);
+    instance.rotation.x = rotation.x;
     instance.rotation.y = rotation.y;
-    instance.scale.set(scale.x, scale.y, scale.z);
+    instance.rotation.z = rotation.z; // 90 graus em radianos
+    console.log("instance rotation and position", instance.rotation, instance.position);
+    //instance.scale.set(scale.x, scale.y, scale.z);
     // marcador para física, se necessário
     if (!instance.userData) instance.userData = {};
     return instance;
@@ -261,7 +289,9 @@ class AssetManager {
     console.log("options", options);
     const tank = new Tank(
       this.sm.sceneGraph,
+      this.sm,
       this.pm.world,
+      this.pm,
       options,
       this.pm.rapierDebugRender
     );

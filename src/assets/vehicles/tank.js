@@ -2,8 +2,8 @@ import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d";
 import { bool } from "three/tsl";
 
-
 import { IS_DEBUG } from "debugManager";
+import { calcVolumePoint } from "three/examples/jsm/curves/NURBSUtils.js";
 
 //TODO :  por variaveis como parametros da classe
 const mass = 10;
@@ -19,6 +19,21 @@ const wheelColor = 0x404040;
 const wheelTransparency = true;
 const wheelOpacity = 0.9;
 
+const chassisSize = new THREE.Vector3(3.5, 2.5, 7);
+const wheelRadius = 0.5;
+const wheelWidth = 0.4;
+const wheelsPositions = [
+  { x: -1.9, y: -0.5, z: -2.2 },
+  { x: 1.9, y: -0.5, z: -2.2 },
+  { x: -1.9, y: -0.5, z: 2.2 },
+  { x: 1.9, y: -0.5, z: 2.2 },
+];
+
+const cannonCilinderLength = 2.5; // comprimento do canhão
+const cannonCilinderRadius = 0.2; // raio do canhão
+const cannonBaseHeight = 0.8;
+const cannonBaseRadius = 1.2;
+
 export class Tank {
   rapierDebugRender;
   world;
@@ -30,7 +45,15 @@ export class Tank {
   controller;
   wheels;
   movement;
-  constructor(scene, world, options={}, rapierDebugRender) {
+  //TODO substituir tudo o que usa scene e world por sceneManager e physicsManager
+  constructor(
+    scene,
+    sceneManager,
+    world,
+    physicsManager,
+    options = {},
+    rapierDebugRender
+  ) {
     if (IS_DEBUG && !rapierDebugRender) {
       console.warn("rapierDebugRender não foi passado para a classe Car.");
     }
@@ -42,21 +65,24 @@ export class Tank {
       reset: false,
       accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
       brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
-      //scopeUp: //TODO
-      //scopeRight: //TODO
+      //appendixUp: //TODO
+      //appendixRight: //TODO
       //shoot: //TODO
     };
-    this.world = world;
     this.scene = scene;
+    this.sceneManager = sceneManager;
+    this.world = world;
+    this.physicsManager = physicsManager;
     this.options = {
-      chassisSize: new THREE.Vector3(2, 1, 4),
-      wheelRadius: 0.3,
-      wheelWidth: 0.4,
+      chassisSize: chassisSize,
+      wheelRadius: wheelRadius,
+      wheelWidth: wheelWidth,
       ...options,
     };
 
     this.initChassis();
     this.initWheels();
+    this.initCanon();
     if (IS_DEBUG && this.rapierDebugRender) {
       this.rapierDebugRender.addVehicle(this.chassisBody, this.controller);
     } else if (IS_DEBUG) {
@@ -66,20 +92,40 @@ export class Tank {
 
   initChassis() {
     // Mesh Three.js
+    const chassisMaterial = new THREE.MeshPhongMaterial({
+      color: chassisColor,
+      transparent: chassisTransparency,
+      opacity: chassisOpacity,
+    });
     this.chassisMesh = new THREE.Mesh(
       new THREE.BoxGeometry(...this.options.chassisSize.toArray()),
-      new THREE.MeshPhongMaterial({
-        color: chassisColor,
-        transparent: chassisTransparency,
-        opacity: chassisOpacity,
-      })
+      chassisMaterial
     );
+
     if (this.options.chassisPosition) {
       this.chassisMesh.position.copy(this.options.chassisPosition);
     } else {
       this.chassisMesh.position.set(0, 3, 0);
     }
     this.chassisMesh.castShadow = true;
+
+    //+: Ponto de rotação do canhao no chassis
+    this.turretPivot = new THREE.Object3D();
+    this.turretPivot.position.set(0, this.options.chassisPosition.y / 2, 0);
+    if (IS_DEBUG) {
+      const improvMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.2),
+        new THREE.MeshPhongMaterial({
+          color: 0xff0000,
+          transparent: chassisTransparency,
+          opacity: chassisOpacity,
+        })
+      );
+      improvMesh.position.copy(this.turretPivot.position);
+      this.chassisMesh.add(improvMesh);
+    }
+    this.chassisMesh.add(this.turretPivot);
+
     this.scene.add(this.chassisMesh);
 
     //physics.addMesh(mesh, 10, 0.8);
@@ -114,17 +160,124 @@ export class Tank {
 
     this.controller = this.world.createVehicleController(this.chassisBody);
   }
+  initCanon() {
+    const cannonMaterial = new THREE.MeshPhongMaterial({
+      color: chassisColor,
+      transparent: chassisTransparency,
+      opacity: chassisOpacity,
+    });
+    //+: Provisorio pra canhao
+    const cannonCilinderGeometry = new THREE.CylinderGeometry(
+      cannonCilinderRadius,
+      cannonCilinderRadius,
+      cannonCilinderLength,
+      16
+    );
+    const cannonBaseGeometry = new THREE.CylinderGeometry(
+      cannonBaseRadius,
+      cannonBaseRadius,
+      cannonBaseHeight,
+      16
+    );
+    this.cannonGroup = new THREE.Group();
+    const cannonCilinderMesh = new THREE.Mesh(
+      cannonCilinderGeometry,
+      cannonMaterial
+    );
+    const cannonBaseMesh = new THREE.Mesh(cannonBaseGeometry, cannonMaterial);
+    cannonCilinderMesh.rotation.x = Math.PI / 2;
+    cannonCilinderMesh.position.set(0, 0, 0.5 - cannonCilinderLength);
+    this.cannonGroup.add(cannonCilinderMesh);
+    this.cannonGroup.add(cannonBaseMesh);
+    //this.cannonCilinderMesh.castShadow = true;
+    //this.cannonBaseMesh.castShadow = true;
+    this.scene.add(this.cannonGroup);
+    //this.cannonGroup.position.copy(globalPos);
+
+    //+:Fisica
+    const cannonGlobalPos = this.options.chassisPosition
+      ? this.options.chassisPosition
+          .clone()
+          .add(
+            new THREE.Vector3(
+              0,
+              this.options.chassisPosition.y / 2 + cannonBaseHeight / 2 + 0.2,
+              0
+            )
+          )
+      : new THREE.Vector3(0, 4.5, 0);
+    //kinematicVelocityBased
+    const cannonBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(
+      cannonGlobalPos.x,
+      cannonGlobalPos.y,
+      cannonGlobalPos.z
+    );
+    this.cannonBody = this.world.createRigidBody(cannonBodyDesc);
+    this.cannonBody.userData = { name: "cannon" };
+    [cannonCilinderMesh, cannonBaseMesh].forEach((mesh) => {
+      /* const globalPos = new THREE.Vector3();
+      const globalQuat = new THREE.Quaternion();
+      mesh.getWorldPosition(globalPos);
+      mesh.getWorldQuaternion(globalQuat);
+      console.log("globalPos", globalPos);
+      console.log("globalQuat", globalQuat);
+      */
+      const localPos = mesh.position;
+      const localQuat = mesh.quaternion;
+      /* console.log("localPos", localPos);
+      console.log("localQuat", localQuat); */
+
+      const box = new THREE.Box3().setFromObject(mesh);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+
+      const colliderDesc = this.physicsManager.getSimpleColliderDesc(mesh);
+      colliderDesc.setTranslation(...localPos);
+      colliderDesc.setRotation(localQuat);
+      colliderDesc.setMass(0.1);
+      this.world.createCollider(colliderDesc, this.cannonBody);
+    });
+
+    this.physicsManager.addMesh(cannonBaseMesh, this.cannonBody, "cannonBase");
+    //+: Base Joints
+    const yAxis = new RAPIER.Vector3(0, 1, 0);
+    const worldPivot = this.turretPivot.getWorldPosition(new THREE.Vector3());
+    const chassisWorldPos = this.chassisMesh.getWorldPosition(
+      new THREE.Vector3()
+    );
+    /* const cannonWorldPos = this.cannonGroup.getWorldPosition(
+      new THREE.Vector3()
+    ); */
+    const chassisAnchor = new RAPIER.Vector3(
+      worldPivot.x - chassisWorldPos.x,
+      worldPivot.y - chassisWorldPos.y,
+      worldPivot.z - chassisWorldPos.z
+    );
+    //const chassisAnchor = new RAPIER.Vector3(0,0,1);
+    const turretAnchor = new RAPIER.Vector3(
+      worldPivot.x - cannonGlobalPos.x,
+      worldPivot.y - cannonGlobalPos.y,
+      worldPivot.z - cannonGlobalPos.z
+    );
+    //const turretAnchor = new RAPIER.Vector3(0,0,-3);
+    console.log("chassisAnchor", chassisAnchor, "turretAnchor", turretAnchor);
+    const jointData = RAPIER.JointData.revolute(
+      chassisAnchor,
+      turretAnchor,
+      yAxis
+    );
+    this.world.createImpulseJoint(
+      jointData,
+      this.chassisBody,
+      this.cannonBody,
+      true // wakeUpBodies
+    );
+  }
 
   initWheels() {
     this.wheels = [];
-    const positions = [
-      { x: -1, y: 0, z: -1.5 },
-      { x: 1, y: 0, z: -1.5 },
-      { x: -1, y: 0, z: 1.5 },
-      { x: 1, y: 0, z: 1.5 },
-    ];
 
-    positions.forEach((pos, index) => {
+    wheelsPositions.forEach((pos, index) => {
       this.addWheel(index, pos);
     });
     this.controller.setWheelSteering(0, Math.PI / 4);

@@ -215,6 +215,7 @@ class Car {
     //
     // OUTRO METODO
     //
+    //SECTION Convex Mesh - Hull
     this.chassiRB = world.createRigidBody(chassiBD);
     hullGroup.traverse((obj) => {
       if (!obj.isMesh) return;
@@ -236,6 +237,7 @@ class Car {
 
       world.createCollider(col, this.chassiRB);
     });
+    //!SECTION
 
     this.vehicleController = world.createVehicleController(this.chassiRB);
     // obter chassiConnectionsCs

@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import {IS_DEBUG} from 'debugManager';
 
+// TODO fazer esta constante virar parametro dependendo do mapa
+const sceneSize = {x: 100, y: 30, z: 100}; //+: para ser usada nas luzes
 export class SceneManager {
   constructor() {
     this.sceneGraph = new THREE.Scene();
@@ -53,12 +55,11 @@ export class SceneManager {
   }
 
   initLights() {
-    // 1) Luz ambiente suave para preencher sombras
+    //+: Luz ambiente suave para preencher sombras
     const ambient = new THREE.AmbientLight(0xffffff, 0.2);
     this.sceneGraph.add(ambient);
 
-    // 2) HemisphereLight para simular céu vs. chão
-    //    (cor do céu acima, cor do chão/reflexão abaixo)
+    //+: HemisphereLight para simular céu vs. chão
     const hemi = new THREE.HemisphereLight(
       0x87ceeb, // céu azul claro
       0x444444, // chão escuro suave
@@ -66,29 +67,38 @@ export class SceneManager {
     );
     this.sceneGraph.add(hemi);
 
-    // 3) Key light — a luz principal (direcional como “sol”)
-    const key = new THREE.DirectionalLight(0xffffff, 1.0);
-    key.position.set(10, 20, 10);
-    key.castShadow = true;
-    // configuração de sombras (opcional, mas melhora qualidade)
-    key.shadow.camera.near = 1;
-    key.shadow.camera.far = 100;
-    key.shadow.camera.left = -20;
-    key.shadow.camera.right = 20;
-    key.shadow.camera.top = 20;
-    key.shadow.camera.bottom = -20;
-    key.shadow.mapSize.set(2048, 2048);
-    this.sceneGraph.add(key);
+    //+: DirectionalLight - sol
+    const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+    sun.position.set(0, 10, 0); //?: luz de meio dia
+    sun.castShadow = true;
+    // configuração de sombras
+    const d = 60;
+    sun.shadow.camera.near = 0; //distancia minima da camera de sombra
+    sun.shadow.camera.far = d*2; //disntancia maxima que a camera de sombra ve
+    //limites lateriais da ortho-camera
+    sun.shadow.camera.left = -d;
+    sun.shadow.camera.right = +d;
+    sun.shadow.camera.top = +d;
+    sun.shadow.camera.bottom = -d;
+    sun.shadow.mapSize.set(2048, 2048);
+    this.sceneGraph.add(sun);
+    if (IS_DEBUG) {
+      const helper = new THREE.CameraHelper(sun.shadow.camera);
+      this.sceneGraph.add(helper);
+    }
 
-    // 4) Fill light — suaviza contrastes da key light
+    //+: Fill light — para suavizar sombras muito fortes da DirectionalLight
     const fill = new THREE.DirectionalLight(0xffffff, 0.3);
-    fill.position.set(-10, 5, -10);
+    fill.position.set(-30, 50, -30);
     this.sceneGraph.add(fill);
 
-    // 5) Rim light (ou back light) — separa objetos do fundo
+    //+: Rim light (ou back light) — separa objetos do fundo
     const rim = new THREE.PointLight(0xffffff, 0.2, 0, 2);
-    rim.position.set(0, 10, -15);
-    this.sceneGraph.add(rim);
+    rim.position.set(0, 40, -80);
+    //this.sceneGraph.add(rim);
+
+    //TODO Novoeiro
+    //this.sceneGraph.fog = new THREE.FogExp2(0xabcdef, 0.0015);
   }
 
   addToScene(object) {

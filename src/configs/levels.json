@@ -7,8 +7,8 @@
     "mapID": "1",
     "vehiclesSpawns": [
       {
-        "type": "bulldozer",
-        "pos": { "x": -5, "y": 3, "z": 10 },
+        "type": "tank",
+        "pos": { "x": 5, "y": 2.2, "z": 10 },
         "rot": { "x": 0, "y": 0, "z": 0 }
       },
       {
@@ -17,13 +17,13 @@
         "rot": { "x": 0, "y": 0, "z": 0 }
       },
       {
-        "type": "car",
-        "pos": { "x": 0, "y": 3, "z": 0 },
+        "type": "bulldozer",
+        "pos": { "x": -5, "y": 3, "z": 10 },
         "rot": { "x": 0, "y": 0, "z": 0 }
       },
       {
-        "type": "tank",
-        "pos": { "x": 5, "y": 3, "z": 10 },
+        "type": "car",
+        "pos": { "x": 0, "y": 3, "z": 0 },
         "rot": { "x": 0, "y": 0, "z": 0 }
       },
       {
