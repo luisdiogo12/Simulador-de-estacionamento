@@ -2,9 +2,11 @@
  * @description lida com os controlos dos veiculos
  */
 import { eventBus } from "eventBus";
+import * as THREE from "three";
 
 import { IS_DEBUG } from "debugManager";
 
+const resetMin = new THREE.Vector3(-400, -40, -400);
 export class VehicleManager {
   vehicles;
   activeVehicleIndex;
@@ -43,6 +45,14 @@ export class VehicleManager {
     if (this.activeVehicle) this.activeVehicle.updateController(this.movement);
     //atualizar os vários veiculos
     this.vehicles.forEach((v) => {
+      if (
+        v.chassisMesh.position.y < resetMin.y ||
+        v.chassisMesh.position.x < resetMin.x ||
+        v.chassisMesh.position.z < resetMin.z
+      ) {
+        v.movement.reset = true; // se o veiculo sair do mapa, reseta o movimento
+        v.updateController(v.movement);
+      }
       v.controller.updateVehicle(dt);
       v.updateWheels();
     });

@@ -1,3 +1,37 @@
+# ToDo
+
+##
+- adicionar colliders as estradas
+- adicionar a posicao de respawn aos veiculos
+- modificar o comando de reset dos veiculos para nao ser ativado por teclas
+- adicionar um limite onde os veiculos vao antes de dar respawn (se forem abaixo de y = -10 por exemplo)
+- adicionar objetos (pedras) - usar BatchedMesh?/InstancedMesh?
+- arranjar a iluminacao
+- efeito a disparar
+- fazer UIManager
+- talvez usar um modelo (usar https://threejs.org/editor/) para o carro so para exemplificar 
+
+
+- arranjar as colisoes dos projeteis
+- meter sombras no terrain
+- usar LOD
+- usar DefaultLoadingManager e/ou LoadingManager
+- usar configureMotorPosition para as pontes
+## Futuro
+- modelos dos veiculos
+- usar texturas e bump maps
+- usar o nome das meshes (park) para identificar se os veiculos estao no estacionamento
+
+- fazer um EventBus para sincronizar eventos entre os sistemas, por exemplo se o physicsManager detetou uma colisao, envia uma publicacao que depois é recebida pelos susbscritores como o renderer, que vai fazer a animação de explosao - usar tambem para o input dos movimentos do carro
+
+- adicionar variaveis independentes para a fricção, etc. do chão, etc.
+
+- usar modelos com animacoes 
+
+- usar convexHull para os colliders dos modelos dos veiculos para depois poder adicionar colliders às rodas
+
+## ToDo Debug
+- usar data.gui com options para manipular em tempo real parametros (luz, camera, physics, etc.)
 
 # Veiculos
 
@@ -5,17 +39,6 @@
 - movement
 - options
 - cores
-
-
-## Futuro
-- modelos dos veiculos
-
-#
-- usar texturas e bump maps
-
-- fazer um EventBus para sincronizar eventos entre os sistemas, por exemplo se o physicsManager detetou uma colisao, envia uma publicacao que depois é recebida pelos susbscritores como o renderer, que vai fazer a animação de explosao - usar tambem para o input dos movimentos do carro
-
-- adicionar variaveis independentes para a fricção, etc. do chão, etc.
 
 # RAPIER
 ## IntegrationParameters
@@ -124,3 +147,20 @@ class CarVisual {
   }
 }
 ```
+# Apresentação
+
+- uso de uma textura para o background e environment da scene - usado apenas como iluminacao e para no futuro em superfícies refletivas como vidro e água
+
+- no load de models, é feito o caching dos modelos para que não sejam carregados novamente
+
+- usei raycaster para selecionar os veiculos a controlar apartir do click do rato : `raycaster.setFromCamera e raycaster.intersectObjects`
+
+## Links
+
+- https://github.com/mrdoob/three.js 
+- https://waelyasmina.net
+- https://sbcode.net/threejs
+- https://heightmap.skydark.pl/
+- https://3d-mapper.com
+- https://manticorp.github.io/unrealheightmap
+- https://imgur.com/a/dusty-biome-heightmap-big-shoulder-games-Br6plqE

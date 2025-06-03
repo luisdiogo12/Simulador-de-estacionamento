@@ -32,28 +32,7 @@ export class PhysicsManager {
     // Loop de física
     //this._interval = setInterval(() => this._step(), 1000 / frameRate);
 
-    this.movement = {
-      forward: 0,
-      right: 0,
-      brake: 0,
-      reset: false,
-      accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
-      brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
-    };
     this.eventQueue = new RAPIER.EventQueue(true);
-
-    //this.objects = objects;
-    //TODO ver se preciso disto
-    //this.dt = 1 / 60;
-    /* if (IS_DEBUG) {
-      this.rapierDebugRender = new RapierDebugRenderer(
-        this.sceneManager.sceneGraph
-      );
-      console.log("RapierDebugRenderer initialized");
-    } else {
-      this.rapierDebugRender = null;
-      console.log("RapierDebugRenderer not initialized");
-    } */
   }
 
   addScene(scene) {
@@ -68,8 +47,23 @@ export class PhysicsManager {
       }
     });
   }
+  addFixedMesh(mesh, body, name) {
+    //+: Para adicionar uma mesh fixa (static) da forma convencionada
+    if (!mesh.userData) {
+      mesh.userData = {};
+    }
+    if (!mesh.userData.physics) {
+      mesh.userData.physics = { body: body, collisions: new Set() };
+    } else {
+      mesh.userData.physics.body = body; // Atualiza o body
+      if (!mesh.userData.physics.collisions) {
+        mesh.userData.physics.collisions = new Set(); // Garante que collisions exista
+      }
+    }
+    mesh.userData.name = name;
+  }
   addMesh(mesh, body, name) {
-    //+: Para adicionar e configurar a mesh da forma convencional deste manager
+    //+: Para adicionar e configurar a mesh da forma convencionada deste manager
     this.meshes.push(mesh);
     this.meshMap.set(mesh, body);
     if (!mesh.userData) {
@@ -85,7 +79,37 @@ export class PhysicsManager {
     }
     mesh.userData.name = name;
   }
+  addGroup(group, body, name) {
+    this.meshes.push(group);
+    this.meshMap.set(group, body);
 
+    if (!group.userData) group.userData = {};
+    if (!group.userData.physics) {
+      group.userData.physics = { body: body, collisions: new Set() };
+    } else {
+      group.userData.physics.body = body;
+      if (!group.userData.physics.collisions) {
+        group.userData.physics.collisions = new Set();
+      }
+    }
+    group.userData.name = name;
+  }
+  removeMesh(mesh) {
+    //+: Para remover a mesh deste manager
+    const body = this.meshMap.get(mesh);
+    if (body) {
+      this.world.removeRigidBody(body);
+      const handles = body.colliderHandles ? body.colliderHandles() : [];
+      handles.forEach((handle) => this.world.removeCollider(handle));
+      this.meshMap.delete(mesh);
+      const index = this.meshes.indexOf(mesh);
+      if (index !== -1) {
+        this.meshes.splice(index, 1);
+      }
+    } else {
+      console.warn("removeMesh: Body não encontrado para a mesh:", mesh);
+    }
+  }
 
   addHeightfield(mesh, width, depth, heights, scale) {
     //TODO testar isto com o terrain
@@ -202,6 +226,99 @@ export class PhysicsManager {
   addRoadTiles(roadGroup) {
     //TODO
   }
+  createJointData(desc) {
+    const {
+      type,
+      anchor1,
+      anchor2,
+      axis,
+      frame1,
+      frame2,
+      limits,
+      stiffness,
+      damping,
+      length,
+      axesMask,
+    } = desc;
+    let jointData;
+    switch (type) {
+      case "fixed":
+        // completely lock relative motion
+        return RAPIER.JointData.fixed(
+          new RAPIER.Vector3(...anchor1), // frame-A anchor
+          new RAPIER.Quaternion(...frame1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Quaternion(...frame2)
+        );
+
+      case "revolute":
+        // hinge about one axis
+        //TODO ver isto (tambem para as outras joints):
+        /*
+        if (frame1) jointData.setFrame1(new RAPIER.Rotation(...frame1));
+        if (frame2) jointData.setFrame2(new RAPIER.Rotation(...frame2));
+        */
+        jointData = RAPIER.JointData.revolute(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Vector3(...axis)
+        );
+        return jointData;
+
+      case "prismatic":
+        // slider along one axis
+        jointData = RAPIER.JointData.prismatic(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Vector3(...axis)
+        );
+        return jointData;
+
+      case "spherical":
+        // ball-and-socket
+        jointData = RAPIER.JointData.spherical(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2)
+        );
+
+      case "rope":
+        // rope of fixed length
+        jointData = RAPIER.JointData.rope(
+          length,
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2)
+        );
+        return jointData;
+
+      case "spring":
+        // spring between anchors
+        jointData = RAPIER.JointData.spring(
+          length,
+          stiffness,
+          damping,
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2)
+        );
+        return jointData;
+
+      case "generic":
+        // custom-mask locking
+        jointData = RAPIER.JointData.generic(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Vector3(...axis),
+          axesMask
+        );
+        return jointData;
+
+      default:
+        throw new Error(`Unknown joint type: ${type}`);
+    }
+  }
+  addJoint(bodyA, bodyB, descriptor, wakeUpBodies = true) {
+    const jointData = this.createJointData(descriptor);
+    return this.world.createImpulseJoint(jointData, bodyA, bodyB, wakeUpBodies);
+  }
   addConstraint(constraint) {
     /* this.world.addConstraint(constraint); */
   }
@@ -247,12 +364,12 @@ export class PhysicsManager {
     this.car.chassisMesh.quaternion.copy(this.car.chassisBody.rotation()); */
 
     //Sync meshes
-    for (let mesh of this.meshes) {
-      const body = this.meshMap.get(mesh);
+    for (let obj of this.meshes) {
+      const body = this.meshMap.get(obj);
       if (!body) continue;
 
-      if (mesh.isInstancedMesh) {
-        const array = mesh.instanceMatrix.array;
+      if (obj.isInstancedMesh) {
+        const array = obj.instanceMatrix.array;
         const bodies = body; // assume um array de bodies
         for (let j = 0; j < bodies.length; j++) {
           const b = bodies[j];
@@ -262,11 +379,14 @@ export class PhysicsManager {
             .compose(pos, this._quaternion, this._vector)
             .toArray(array, j * 16);
         }
-        mesh.instanceMatrix.needsUpdate = true;
-        mesh.computeBoundingSphere();
+        obj.instanceMatrix.needsUpdate = true;
+        obj.computeBoundingSphere();
+      } else if (obj.isGroup || obj.type === "Group") {
+        obj.position.copy(body.translation());
+        obj.quaternion.copy(body.rotation());
       } else {
-        mesh.position.copy(body.translation());
-        mesh.quaternion.copy(body.rotation());
+        obj.position.copy(body.translation());
+        obj.quaternion.copy(body.rotation());
       }
     }
   }

@@ -42,8 +42,9 @@ export default defineConfig({
       vehicleManager: resolve(__dirname, "src/vehiclesManager.js"), // Atalho para a pasta vehiclesManager
       //Map Objects
       terrain: resolve(__dirname, "src/assets/map/terrain.js"), // Atalho para a pasta terrain
+      water: resolve(__dirname, "src/assets/map/water.js"), // Atalho para a pasta terrain
       road: resolve(__dirname, "src/assets/map/road.js"), // Atalho para a pasta road
-      //Obstacles 
+      //Obstacles
       rock: resolve(__dirname, "src/assets/obstacles/rock.js"), // Atalho para a pasta rock
       tree: resolve(__dirname, "src/assets/obstacles/tree.js"), // Atalho para a pasta tree
       //Vehicles

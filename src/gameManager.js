@@ -10,11 +10,12 @@ import levelsData from "configs/levels.json";
 import mapsData from "configs/maps.json";
 
 import { IS_DEBUG } from "debugManager";
-import {RapierDebugRenderer} from "rapierDebug";
-  import Stats from "three/addons/libs/stats.module.js";
-
+import { RapierDebugRenderer } from "rapierDebug";
+import Stats from "three/addons/libs/stats.module.js";
 
 export let mm, pm, sm, vm;
+
+const canvas = document.querySelector("canvas.webgl");
 
 export class GameManager {
   constructor(levelsIDs = ["1"]) {
@@ -73,7 +74,7 @@ export class GameManager {
     }
     //+: atualizar o target e depois a camara
     if (vm.activeVehicle) {
-      sm.setFollowTarget(vm.activeVehicle.chassisMesh);
+      sm.setFollowTarget(vm.activeVehicle.follow_target);
     }
     sm.updateCamera();
     //+: render exactly once per RAF frame
@@ -120,8 +121,8 @@ export class GameManager {
 
     //TODO load UI
     //FIXME remover esta simulacao de espera de carregamento
-    console.log("Carregando mapa...");
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Pausa de 10 segundos
+    //console.log("Carregando mapa...");
+    //await new Promise((resolve) => setTimeout(resolve, 1000)); // Pausa de 10 segundos
   }
   setupEventListeners() {
     window.addEventListener("resize", () =>
@@ -135,70 +136,90 @@ export class GameManager {
         return;
       }
       this.currentLevel.sm.enableFollow(); //+: assim que algum comando é detectado, ativa o follow da camera
-      if ("forward" in mv) {
-        if (event.key === "w" ) {
+      if (event.key === "w") {
+        if ("forward" in mv) {
           this.currentLevel.vm.movement.forward = -1;
-          if (IS_DEBUG) {
-            console.log("forward");
-          }
         }
-        if (event.key === "s" ) {
-          this.currentLevel.vm.movement.forward = 1;
-          if (IS_DEBUG) {
-            console.log("backward");
-          }
+        if (IS_DEBUG) {
+          console.log("forward");
         }
       }
-      if ("right" in mv) {
-        if (event.key === "a" ) {
+        if (event.key === "s") {
+          if ("forward" in mv) {
+            this.currentLevel.vm.movement.forward = 1;
+          }
+        if (IS_DEBUG) {
+          console.log("backward");
+        }
+      }
+      if (event.key === "a") {
+        if ("right" in mv) {
           this.currentLevel.vm.movement.right = 1;
-          if (IS_DEBUG) {
-            console.log("left");
-          }
         }
-        if (event.key === "d" ) {
+        if (IS_DEBUG) {
+          console.log("left");
+        }
+      }
+      if (event.key === "d") {
+        if ("right" in mv) {
           this.currentLevel.vm.movement.right = -1;
-          if (IS_DEBUG) {
-            console.log("right");
-          }
+        }
+        if (IS_DEBUG) {
+          console.log("right");
         }
       }
-      if ("appendixUp" in mv ) {
-        if (event.key === "ArrowUp") {
+      if (event.key === "ArrowDown") {
+        if ("appendixUp" in mv) {
           this.currentLevel.vm.movement.appendixUp = -1;
-          if (IS_DEBUG) {
-            console.log("appendix down");
-          }
         }
-        if (event.key === "ArrowDown") {
+        if (IS_DEBUG) {
+          console.log("appendix down");
+        }
+      }
+      if (event.key === "ArrowUp") {
+        if ("appendixUp" in mv) {
           this.currentLevel.vm.movement.appendixUp = 1;
-          if (IS_DEBUG) {
-            console.log("appendix up");
-          }
+        }
+        if (IS_DEBUG) {
+          console.log("appendix up");
         }
       }
-      if ("appendixRight" in mv ) {
-        if (event.key === "ArrowLeft") {
+      if (event.key === "ArrowLeft") {
+        if ("appendixRight" in mv) {
           this.currentLevel.vm.movement.appendixRight = -1;
-          if (IS_DEBUG) {
-            console.log("appendix down");
-          }
         }
-        if (event.key === "ArrowRight") {
-          this.currentLevel.vm.movement.appendixRight = 1;
-          if (IS_DEBUG) {
-            console.log("appendix up");
-          }
+        if (IS_DEBUG) {
+          console.log("appendix left");
         }
       }
-      if ("reset" in mv && event.key === "r") {
+      if (event.key === "ArrowRight") {
+        if ("appendixRight" in mv) {
+          this.currentLevel.vm.movement.appendixRight = 1;
+        }
+        if (IS_DEBUG) {
+          console.log("appendix right");
+        }
+      }
+      if (event.key === "f") {
+        if ("shoot" in mv) {
+          this.currentLevel.vm.movement.shoot = 1;
+        }
+        if (IS_DEBUG) {
+          console.log("shoot");
+        }
+      }
+      if ( event.key === "r") {
+        if ("reset" in mv){
         this.currentLevel.vm.movement.reset = true;
+        }
         if (IS_DEBUG) {
           console.log("reset");
         }
       }
-      if ("brake" in mv && event.key === " ") {
+      if (event.key === " ") {
+        if ("brake" in mv){
         this.currentLevel.vm.movement.brake = 1;
+      }
         if (IS_DEBUG) {
           console.log("brake");
         }
@@ -211,59 +232,58 @@ export class GameManager {
         return;
       }
       this.currentLevel.sm.enableFollow(); //+: assim que algum comando é detectado, ativa o follow da camera
-      if (
-        "forward" in mv &&
-        (event.key === "w" ||
-          event.key === "s" 
-          )
-      ) {
-        this.currentLevel.vm.movement.forward = 0;
+      if (event.key === "w" || event.key === "s") {
+        if ("forward" in mv) {
+          this.currentLevel.vm.movement.forward = 0;
+        }
         if (IS_DEBUG) {
           console.log("stop backward");
         }
       }
-      if (
-        "right" in mv &&
-        (event.key === "a" ||
-          event.key === "d" 
-          )
-      ) {
-        this.currentLevel.vm.movement.right = 0;
+      if (event.key === "a" || event.key === "d") {
+        if ("right" in mv) {
+          this.currentLevel.vm.movement.right = 0;
+        }
         if (IS_DEBUG) {
           console.log("stop left");
         }
       }
-      if (
-        "appendixUp" in mv &&
-        (
-          event.key === "ArrowLeft" ||
-          event.key === "ArrowRight")
-      ) {
-        this.currentLevel.vm.movement.appendixUp = 0;
+      if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        if ("appendixUp" in mv) {
+          this.currentLevel.vm.movement.appendixUp = 0;
+        }
         if (IS_DEBUG) {
           console.log("stop appendixUp");
         }
       }
-      if (
-        "appendixRight" in mv &&
-        (
-          event.key === "ArrowLeft" ||
-          event.key === "ArrowRight")
-      ) {
-        this.currentLevel.vm.movement.appendixRight = 0;
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        if ("appendixRight" in mv) {
+          this.currentLevel.vm.movement.appendixRight = 0;
+        }
         if (IS_DEBUG) {
           console.log("stop appendixRight");
         }
       }
-
-      if ("reset" in mv && event.key === "r") {
-        this.currentLevel.vm.movement.reset = false;
+      if (event.key === "f") {
+        if ("shoot" in mv) {
+          this.currentLevel.vm.movement.shoot = 0;
+        }
+        if (IS_DEBUG) {
+          console.log("stop shoot");
+        }
+      }
+      if (event.key === "r") {
+        if ("reset" in mv) {
+          this.currentLevel.vm.movement.reset = false;
+        }
         if (IS_DEBUG) {
           console.log("stop reset");
         }
       }
-      if ("brake" in mv && event.key === " ") {
-        this.currentLevel.vm.movement.brake = 0;
+      if (event.key === " ") {
+        if ("brake" in mv) {
+          this.currentLevel.vm.movement.brake = 0;
+        }
         if (IS_DEBUG) {
           console.log("stop brake");
         }
@@ -276,9 +296,9 @@ export class GameManager {
   /**
    *
    * @param {*} event
-   * @description 
+   * @description
    * Detecta o clique do rato e seleciona o veículo correspondente.
-   * 
+   *
    */
   _onPointerDown = (event) => {
     //+: Normaliza as coordenadas do rato para o NDC space [-1,+1]
@@ -315,10 +335,7 @@ class LevelController {
     this.mm = new MapManager(this.sm, this.pm);
     this.vm = new VehicleManager();
     assetsManager.updateLevel(this.pm, this.sm, this.vm);
-    this.rapierDebugRender = new RapierDebugRenderer(
-      this.sm,
-      this.pm.world
-    );
+    this.rapierDebugRender = new RapierDebugRenderer(this.sm, this.pm.world);
     this.conditions = {
       allParked: false,
       //NOTE adicionar mais depois

@@ -9,24 +9,37 @@ const mass = 10;
 const restitution = 0.8;
 const wheelSuspensionStiffness = 24;
 const wheelFrictionSlip = 1000;
-
+const suspensionRestLength = 0.4;
 //FIXME provisorio
 const chassisColor = 0x00ffff;
-const chassisTransparency = true;
-const chassisOpacity = 0.9;
+const chassisTransparency = false;
+const chassisOpacity = 0.3;
 const wheelColor = 0x404040;
-const wheelTransparency = true;
-const wheelOpacity = 0.9;
+const wheelTransparency = false;
+const wheelOpacity = 0.3;
+const bucketColor = 0xaf00af;
+const bucketTransparency = false;
+const bucketOpacity = 0.3;
 
-const chassisSize = new THREE.Vector3(2.5, 3, 18);
-const wheelRadius = 0.5;
-const wheelWidth = 0.4;
+const chassisSize = new THREE.Vector3(2.5, 3, 15);
+const chassisSize1 = new THREE.Vector3(2.5, 1, 15);
+const chassisSize2 = new THREE.Vector3(2.5, 2.5, 3);
+const wheelRadius = 0.9;
+const wheelWidth = 0.7;
 const wheelsPositions = [
-  { x: -1.2, y: -1, z: -7.3 },
-  { x: 1.2, y: -1, z: -7.3 },
-  { x: -1.2, y: -1, z: 8 },
-  { x: 1.2, y: -1, z: 8 },
+  { x: -1.2, y: -1, z: -6.3 },
+  { x: 1.2, y: -1, z: -6.3 },
+  { x: -1.2, y: -1, z: 6 - wheelRadius*2 -0.5 },
+  { x: 1.2, y: -1, z: 6 - wheelRadius*2 -0.5},
+  { x: -1.2, y: -1, z: 6 },
+  { x: 1.2, y: -1, z: 6 },
 ];
+
+const bucketThickness = 0.2;
+const bucketHeight = 2.5;
+const bucketWidth = 2.5;
+const bucketLength = 12;
+const bucketMargin = 1.25;
 export class Truck {
   rapierDebugRender;
   world;
@@ -38,7 +51,14 @@ export class Truck {
   controller;
   wheels;
   movement;
-  constructor(scene, world, options = {}, rapierDebugRender) {
+  constructor(
+    scene,
+    sceneManager,
+    world,
+    physicsManager,
+    options = {},
+    rapierDebugRender
+  ) {
     if (IS_DEBUG && !rapierDebugRender) {
       console.warn("rapierDebugRender não foi passado para a classe Car.");
     }
@@ -50,11 +70,13 @@ export class Truck {
       reset: false,
       accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
       brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
-      //bucketUp:  //TODO
-      //bucketOpen: //TODO
+      appendixUp: 0, //TODO
+      appendixRight: 0, //TODO para abrir o bucket
     };
-    this.world = world;
     this.scene = scene;
+    this.sceneManager = sceneManager;
+    this.world = world;
+    this.physicsManager = physicsManager;
     this.options = {
       chassisSize: chassisSize,
       wheelRadius: wheelRadius,
@@ -64,6 +86,7 @@ export class Truck {
 
     this.initChassis();
     this.initWheels();
+    this.initBucket();
     if (IS_DEBUG && this.rapierDebugRender) {
       this.rapierDebugRender.addVehicle(this.chassisBody, this.controller);
     } else if (IS_DEBUG) {
@@ -78,11 +101,10 @@ export class Truck {
       transparent: chassisTransparency,
       opacity: chassisOpacity,
     });
-    this.chassisMesh = new THREE.Mesh(
+    /* this.chassisMesh = new THREE.Mesh(
       new THREE.BoxGeometry(...this.options.chassisSize.toArray()),
       chassisMaterial
     );
-    //+: Provisorio bucket
 
     if (this.options.chassisPosition) {
       this.chassisMesh.position.copy(this.options.chassisPosition);
@@ -90,7 +112,7 @@ export class Truck {
       this.chassisMesh.position.set(0, 3, 0);
     }
     this.chassisMesh.castShadow = true;
-    this.scene.add(this.chassisMesh);
+    this.sceneManager.addToScene(this.chassisMesh);
 
     //physics.addMesh(mesh, 10, 0.8);
     const colliderDesc = RAPIER.ColliderDesc.cuboid(
@@ -123,8 +145,207 @@ export class Truck {
     this.chassisMesh.userData.physics.body = this.chassisBody;
 
     this.controller = this.world.createVehicleController(this.chassisBody);
+ */
+    //+:-------------
+    const chassis1Geo = new THREE.BoxGeometry(...chassisSize1.toArray());
+    this.chassisMesh = new THREE.Group();
+    const chassis1Mesh = new THREE.Mesh(chassis1Geo, chassisMaterial);
+    const chassis2Geo = new THREE.BoxGeometry(...chassisSize2.toArray());
+    const chassis2Mesh = new THREE.Mesh(chassis2Geo, chassisMaterial);
+    chassis2Mesh.position.set(
+      0,
+      (chassisSize1.y + chassisSize2.y) / 2,
+      -(chassisSize1.z - chassisSize2.z) / 2
+    );
+    this.chassisMesh.add(chassis1Mesh);
+    this.chassisMesh.add(chassis2Mesh);
+    const pivot = new THREE.Object3D();
+    pivot.name = "pivot";
+    pivot.position.set(0, chassisSize1.y / 2, chassisSize1.z / 2);
+    if (IS_DEBUG) {
+      const improvMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.1),
+        new THREE.MeshPhongMaterial({
+          color: 0xff0000,
+          transparent: chassisTransparency,
+          opacity: chassisOpacity,
+        })
+      );
+      improvMesh.position.copy(pivot.position);
+      this.chassisMesh.add(improvMesh);
+    }
+    this.chassisMesh.add(pivot); //+:const pivot = this.chassisMesh.getObjectByName("pivot");
+    //this.chassisMesh.position.copy(this.chassisMesh.position);
+    //this.chassisMesh.position.set(0, 5, 0);
+    if (this.options.chassisPosition) {
+          this.chassisMesh.position.copy(this.options.chassisPosition);
+          this.spawnPos = this.options.chassisPosition.clone();
+        } else {
+          this.chassisMesh.position.set(0, 3, 0);
+          this.spawnPos = new THREE.Vector3(0, 3, 0);
+        }
+    this.sceneManager.addToScene(this.chassisMesh);
+    this.follow_target = this.chassisMesh;
+
+    const chassisBody1Desc = RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(...this.chassisMesh.position)
+      .setRotation(this.chassisMesh.quaternion);
+    this.chassisBody = this.world.createRigidBody(chassisBody1Desc);
+    this.chassisBody.userData = { name: "chassisBody" };
+    let colliderDesc1;
+    colliderDesc1 = this.physicsManager
+      .getSimpleColliderDesc(chassis1Mesh)
+      .setTranslation(...chassis1Mesh.position)
+      .setRotation(chassis1Mesh.quaternion);
+    this.world.createCollider(colliderDesc1, this.chassisBody);
+    colliderDesc1 = this.physicsManager
+      .getSimpleColliderDesc(chassis2Mesh)
+      .setTranslation(...chassis2Mesh.position)
+      .setRotation(chassis2Mesh.quaternion);
+    this.world.createCollider(colliderDesc1, this.chassisBody);
+    //TODO :  isto vai para o physicsManager
+    //meshes.push(this.chassisMesh);
+    //meshMap.set(this.chassisMesh, this.chassisBody);
+    // fim de physics.addMesh
+    this.physicsManager.addGroup(
+      this.chassisMesh,
+      this.chassisBody,
+      "chassisBody"
+    );
+
+    if (!this.chassisMesh.userData.physics) {
+      this.chassisMesh.userData.physics = {};
+    }
+    this.chassisMesh.userData.physics.body = this.chassisBody;
+
+    this.controller = this.world.createVehicleController(this.chassisBody);
   }
 
+  initBucket() {
+    const bucketMaterial = new THREE.MeshPhongMaterial({
+      color: bucketColor,
+      transparent: bucketTransparency,
+      opacity: bucketOpacity,
+    });
+    this.bucketGroup = new THREE.Group();
+    const bucket1Geo = new THREE.BoxGeometry(
+      bucketWidth,
+      bucketHeight,
+      bucketThickness
+    );
+    const bucket1Mesh = new THREE.Mesh(bucket1Geo, bucketMaterial);
+    const bucket2Geo = new THREE.BoxGeometry(
+      bucketWidth,
+      bucketThickness,
+      bucketLength - bucketThickness - bucketMargin
+    );
+    const bucket2Mesh = new THREE.Mesh(bucket2Geo, bucketMaterial);
+    const bucket3Geo = new THREE.BoxGeometry(
+      bucketThickness,
+      bucketHeight - bucketThickness,
+      bucketLength - bucketThickness - bucketMargin
+    );
+    const bucket3Mesh = new THREE.Mesh(bucket3Geo, bucketMaterial);
+    const bucket4Geo = new THREE.BoxGeometry(
+      bucketThickness,
+      bucketHeight - bucketThickness,
+      bucketLength - bucketThickness - bucketMargin
+    );
+    const bucket4Mesh = new THREE.Mesh(bucket4Geo, bucketMaterial);
+
+    /**
+const bucketThickness = 0.2;
+const bucketHeight = 2.5;
+const bucketWidth = 2.5;
+const bucketLength = 6.5;
+     */
+    this.bucketGroup.add(bucket1Mesh);
+    this.bucketGroup.add(bucket2Mesh);
+    this.bucketGroup.add(bucket3Mesh);
+    this.bucketGroup.add(bucket4Mesh);
+    bucket1Mesh.position.set(0, 0, 0);
+    bucket2Mesh.position.set(
+      0,
+      -(bucketHeight - bucketThickness) / 2,
+      (bucketLength - bucketMargin) / 2
+    );
+    bucket3Mesh.position.set(
+      (bucketWidth - bucketThickness) / 2,
+      bucketThickness / 2,
+      (bucketLength - bucketMargin) / 2
+    );
+    bucket4Mesh.position.set(
+      -(bucketWidth - bucketThickness) / 2,
+      bucketThickness / 2,
+      (bucketLength - bucketMargin) / 2
+    );
+
+    this.bucketGroup.position.copy(this.chassisMesh.position);
+    this.bucketGroup.translateX(0);
+    this.bucketGroup.translateY((bucketHeight + chassisSize1.y) / 2);
+    this.bucketGroup.translateZ(
+      -(bucketLength - bucketThickness - chassisSize2.z) / 2 + bucketMargin
+    );
+    this.sceneManager.addToScene(this.bucketGroup);
+    //+:FISICA COLLIDERS
+    const bucketBodyDesc = RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(...this.bucketGroup.position)
+      .setRotation(this.bucketGroup.quaternion);
+    this.bucketBody = this.world.createRigidBody(bucketBodyDesc);
+    this.bucketBody.userData = { name: "bucketBody" };
+    let colliderDesc;
+    colliderDesc = this.physicsManager
+      .getSimpleColliderDesc(bucket1Mesh)
+      .setTranslation(...bucket1Mesh.position)
+      .setRotation(bucket1Mesh.quaternion)
+      .setMass(0.1);
+    this.world.createCollider(colliderDesc, this.bucketBody);
+    colliderDesc = this.physicsManager
+      .getSimpleColliderDesc(bucket2Mesh)
+      .setTranslation(...bucket2Mesh.position)
+      .setRotation(bucket2Mesh.quaternion)
+      .setMass(0.1);
+    this.world.createCollider(colliderDesc, this.bucketBody);
+    colliderDesc = this.physicsManager
+      .getSimpleColliderDesc(bucket3Mesh)
+      .setTranslation(...bucket3Mesh.position)
+      .setRotation(bucket3Mesh.quaternion).setMass(0.1);
+    this.world.createCollider(colliderDesc, this.bucketBody);
+    colliderDesc = this.physicsManager
+      .getSimpleColliderDesc(bucket4Mesh)
+      .setTranslation(...bucket4Mesh.position)
+      .setRotation(bucket4Mesh.quaternion).setMass(0.1);
+    this.world.createCollider(colliderDesc, this.bucketBody);
+    //+: FISICA JOINTS
+    const pivot = this.chassisMesh.getObjectByName("pivot");
+    const GP_pivot = pivot.getWorldPosition(new THREE.Vector3());
+    const GP_bucketGroup = this.bucketGroup.getWorldPosition(
+      new THREE.Vector3()
+    );
+    const anchor1 = [
+      GP_pivot.x - GP_bucketGroup.x,
+      GP_pivot.y - GP_bucketGroup.y,
+      GP_pivot.z - GP_bucketGroup.z,
+    ];
+    const anchor2 = [pivot.position.x, pivot.position.y, pivot.position.z];
+    this.bucketJoint = this.physicsManager.addJoint(
+      this.bucketBody,
+      this.chassisBody,
+      {
+        type: "revolute",
+        anchor1: anchor1,
+        anchor2: anchor2,
+        axis: [1, 0, 0], // yAxis
+      }
+    );
+    this.bucketJoint.limitsEnabled();
+    this.bucketJoint.setLimits(-Math.PI / 3, 0); 
+    this.physicsManager.addGroup(
+      this.bucketGroup,
+      this.bucketBody,
+      "bucketBody"
+    );
+  }
   initWheels() {
     this.wheels = [];
 
@@ -139,7 +360,7 @@ export class Truck {
     const wheelParams = {
       radius: this.options.wheelRadius,
       width: this.options.wheelWidth,
-      suspensionRestLength: 0.8,
+      suspensionRestLength: suspensionRestLength,
       position: new THREE.Vector3(pos.x, pos.y, pos.z),
       direction: new RAPIER.Vector3(...Object.values({ x: 0, y: -1, z: 0 })),
       axle: new RAPIER.Vector3(...Object.values({ x: -1, y: 0, z: 0 })),
@@ -181,20 +402,22 @@ export class Truck {
     wheelMesh.castShadow = true;
     wheelMesh.position.copy(pos);
     this.wheels.push(wheelMesh);
+    //this.chassisMesh.add(wheelMesh);
     this.chassisMesh.add(wheelMesh);
   }
 
   updateController(movement) {
     this.movement = movement;
     if (this.movement.reset) {
-      this.chassisBody.setTranslation(new RAPIER.Vector3(0, 1, 0), true);
+      this.chassisBody.setTranslation(this.spawnPos, true);
       this.chassisBody.setRotation(new RAPIER.Quaternion(0, 0, 0, 1), true);
       this.chassisBody.setLinvel(new RAPIER.Vector3(0, 0, 0), true);
       this.chassisBody.setAngvel(new RAPIER.Vector3(0, 0, 0), true);
 
       this.movement.accelerateForce.value = 0;
       this.movement.brakeForce.value = 0;
-
+      this.movement.reset = false;
+      
       return;
     }
 
@@ -257,6 +480,16 @@ export class Truck {
     this.controller.setWheelBrake(1, wheelBrake);
     this.controller.setWheelBrake(2, wheelBrake);
     this.controller.setWheelBrake(3, wheelBrake);
+
+    this.updateBucket();
+  }
+  updateBucket() {
+    const maxAngularSpeed = Math.PI / 8;
+    const damping = 500000.0; 
+    const dir = this.movement.appendixUp || 0;
+    //console.log("dir", dir);
+    const targetVel = -dir * maxAngularSpeed; //velocidade alvo
+    this.bucketJoint.configureMotorVelocity(targetVel, damping);
   }
   updateWheels() {
     if (this.controller === undefined) return;

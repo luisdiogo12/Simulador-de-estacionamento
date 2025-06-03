@@ -33,6 +33,16 @@ const posFactor = {
   y: tileSize.y * tileScale.y,
   z: tileSize.z * tileScale.z,
 };
+function normalizeAngle(ang) {
+  const rounded = Math.round(ang * 10) / 10; // arredonda para 1 casa decimal
+  if (rounded === 1.6 || rounded === -4.7) return Math.PI / 2; // 90°
+  if (rounded === 3.1 || rounded === -3.1) return Math.PI; // 180°
+  if (rounded === 4.7 || rounded === -1.6) return (3 * Math.PI) / 2; // 270°
+  if (rounded === -1.6) return -Math.PI / 2; // -90°
+  if (rounded === -3.1) return -Math.PI; // -180°
+  if (rounded === -4.7) return -(3 * Math.PI) / 2; // -270°
+  return ang;
+}
 
 class AssetManager {
   constructor() {
@@ -41,18 +51,24 @@ class AssetManager {
     this.modelCache = new Map();
     this.assets = {
       //TODO eliminar modelos deprecados
-      car: this._loadGLTF("SUV.glb"),
-      road: this._loadGLTFtiles("road/road_49.gltf"),
-      road_turn_left: this._loadGLTFtiles("road/road_TL_49.gltf"),
-      road_turn_right: this._loadGLTFtiles("road/road_TR_49.gltf"),
-      road_junction_left: this._loadGLTFtiles("road/road_JL_49.gltf"),
-      road_junction_right: this._loadGLTFtiles("road/road_JR_49.gltf"),
-      road_junction_left_right: this._loadGLTFtiles("road/road_I_49.gltf"),
-      park1: this._loadGLTFtiles("road/park1_49.gltf"),
-      grass: this._loadGLTF("erva.gltf"),
+      /* car: this._loadGLTF("SUV.glb"), */
+      road: this._loadGLTFtiles("road/road_49/road_49.gltf"),
+      road_turn_left: this._loadGLTFtiles("road/road_TL_49/road_TL_49.gltf"),
+      road_turn_right: this._loadGLTFtiles("road/road_TR_49/road_TR_49.gltf"),
+      road_junction_left: this._loadGLTFtiles(
+        "road/road_JL_49/road_JL_49.gltf"
+      ),
+      road_junction_right: this._loadGLTFtiles(
+        "road/road_JR_49/road_JR_49.gltf"
+      ),
+      road_junction_left_right: this._loadGLTFtiles(
+        "road/road_I_49/road_I_49.gltf"
+      ),
+      park1: this._loadGLTFtiles("road/park1_49/park1_49.gltf"),
+      /* grass: this._loadGLTF("erva.gltf"),
       rock: this._makePrimitive(() => new THREE.BoxGeometry(1, 1, 1)),
       tree: this._makeTree.bind(this),
-      trafic_light: this._makeTrafficLight.bind(this),
+      trafic_light: this._makeTrafficLight.bind(this), */
     };
   }
   updateLevel(physicsManager, sceneManager, vehicleManager) {
@@ -73,6 +89,12 @@ class AssetManager {
       const clone = this.modelCache.get(filename).clone();
       clone.scale.set(tileScale.x, tileScale.y, tileScale.z);
       clone.position.set(x * posFactor.x, y * posFactor.y, z * posFactor.z);
+      const tarMesh = clone.getObjectByName("tar");
+      if (tarMesh) {
+        console.log('Mesh chamada "tar" encontrada:', tarMesh);
+      } else {
+        console.log('Nenhuma mesh chamada "tar" encontrada.');
+      }
       return clone;
     };
   }
@@ -153,6 +175,9 @@ class AssetManager {
       return;
     }
     const instance = await creator(x, y, z);
+    rotation.x = normalizeAngle(rotation.x);
+    rotation.y = normalizeAngle(rotation.y);
+    rotation.z = normalizeAngle(rotation.z);
     instance.rotation.x = rotation.x;
     instance.rotation.y = rotation.y;
     instance.rotation.z = rotation.z; // 90 graus em radianos
@@ -187,14 +212,16 @@ class AssetManager {
     console.log("options", options);
     const car = new Car(
       this.sm.sceneGraph,
+      this.sm,
       this.pm.world,
+      this.pm,
       options,
       this.pm.rapierDebugRender
     );
     //car.chassisMesh.position.set(x, y, z); //FIXME
     //car.chassisBody.setTranslation(x, y, z);
     this.pm.addMesh(car.chassisMesh, car.chassisBody, "car"); // add car to the physicsManager
-    this.sm.addToScene(car.chassisMesh); // add car to the sceneManager
+    //this.sm.addToScene(car.chassisMesh); // add car to the sceneManager
     this.vm.addVehicle(car); // add car to the vehicleManager
     return car;
   }
@@ -221,7 +248,9 @@ class AssetManager {
     console.log("options", options);
     const bulldozer = new Bulldozer(
       this.sm.sceneGraph,
+      this.sm,
       this.pm.world,
+      this.pm,
       options,
       this.pm.rapierDebugRender
     );
@@ -255,14 +284,16 @@ class AssetManager {
     console.log("options", options);
     const bus = new Bus(
       this.sm.sceneGraph,
+      this.sm,
       this.pm.world,
+      this.pm,
       options,
       this.pm.rapierDebugRender
     );
     //bus.chassisMesh.position.set(x, y, z); //FIXME
     //bus.chassisBody.setTranslation(x, y, z);
     this.pm.addMesh(bus.chassisMesh, bus.chassisBody, "bus"); // add bus to the physicsManager
-    this.sm.addToScene(bus.chassisMesh); // add bus to the sceneManager
+    //this.sm.addToScene(bus.chassisMesh); // add bus to the sceneManager
     this.vm.addVehicle(bus); // add bus to the vehicleManager
     return bus;
   }
@@ -298,7 +329,7 @@ class AssetManager {
     //tank.chassisMesh.position.set(x, y, z); //FIXME
     //tank.chassisBody.setTranslation(x, y, z);
     this.pm.addMesh(tank.chassisMesh, tank.chassisBody, "tank"); // add tank to the physicsManager
-    this.sm.addToScene(tank.chassisMesh); // add tank to the sceneManager
+    //this.sm.addToScene(tank.chassisMesh); // add tank to the sceneManager
     this.vm.addVehicle(tank); // add tank to the vehicleManager
     return tank;
   }
@@ -325,14 +356,16 @@ class AssetManager {
     console.log("options", options);
     const truck = new Truck(
       this.sm.sceneGraph,
+      this.sm,
       this.pm.world,
+      this.pm,
       options,
       this.pm.rapierDebugRender
     );
     //truck.chassisMesh.position.set(x, y, z); //FIXME
     //truck.chassisBody.setTranslation(x, y, z);
-    this.pm.addMesh(truck.chassisMesh, truck.chassisBody, "truck"); // add truck to the physicsManager
-    this.sm.addToScene(truck.chassisMesh); // add truck to the sceneManager
+    //this.pm.addMesh(truck.chassisMesh, truck.chassisBody, "truck"); // add truck to the physicsManager
+    //this.sm.addToScene(truck.chassisMesh); // add truck to the sceneManager
     this.vm.addVehicle(truck); // add truck to the vehicleManager
     return truck;
   }

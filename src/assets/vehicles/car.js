@@ -2,7 +2,6 @@ import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d";
 import { bool } from "three/tsl";
 
-
 import { IS_DEBUG } from "debugManager";
 
 //TODO :  por variaveis como parametros da classe
@@ -16,7 +15,7 @@ const chassisColor = 0xff0000;
 const chassisTransparency = false;
 const chassisOpacity = 0.9;
 const wheelColor = 0x404040;
-const wheelTransparency = true;
+const wheelTransparency = false;
 const wheelOpacity = 0.9;
 
 const chassisSize = new THREE.Vector3(2, 1, 4);
@@ -39,7 +38,14 @@ export class Car {
   controller;
   wheels;
   movement;
-  constructor(scene, world, options={}, rapierDebugRender) {
+  constructor(
+    scene,
+    sceneManager,
+    world,
+    physicsManager,
+    options = {},
+    rapierDebugRender
+  ) {
     if (IS_DEBUG && !rapierDebugRender) {
       console.warn("rapierDebugRender não foi passado para a classe Car.");
     }
@@ -52,8 +58,10 @@ export class Car {
       accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
       brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
     };
-    this.world = world;
     this.scene = scene;
+    this.sceneManager = sceneManager;
+    this.world = world;
+    this.physicsManager = physicsManager;
     this.options = {
       chassisSize: chassisSize,
       wheelRadius: wheelRadius,
@@ -82,14 +90,17 @@ export class Car {
     );
     if (this.options.chassisPosition) {
       this.chassisMesh.position.copy(this.options.chassisPosition);
+      this.spawnPos = this.options.chassisPosition.clone();
     } else {
-      console.warn("Car.initChassis: options.chassisPosition não definido.");
+      this.chassisMesh.position.set(0, 3, 0);
+      this.spawnPos = new THREE.Vector3(0, 3, 0);
     }
     /* if (this.options.chassisRotation) {
       this.chassisMesh.rotation.copy(this.options.chassisRotation);
     } */
     this.chassisMesh.castShadow = true; //TODO isto devia estar em sceneManager.addToScene
-    this.scene.add(this.chassisMesh);
+    this.sceneManager.addToScene(this.chassisMesh);
+    this.follow_target = this.chassisMesh;
 
     //physics.addMesh(mesh, 10, 0.8);
     const colliderDesc = RAPIER.ColliderDesc.cuboid(
@@ -128,7 +139,6 @@ export class Car {
 
   initWheels() {
     this.wheels = [];
-
 
     wheelsPositions.forEach((pos, index) => {
       this.addWheel(index, pos);
@@ -189,14 +199,15 @@ export class Car {
   updateController(movement) {
     this.movement = movement;
     if (this.movement.reset) {
-      this.chassisBody.setTranslation(new RAPIER.Vector3(0, 1, 0), true);
+      this.chassisBody.setTranslation(this.spawnPos, true);
       this.chassisBody.setRotation(new RAPIER.Quaternion(0, 0, 0, 1), true);
       this.chassisBody.setLinvel(new RAPIER.Vector3(0, 0, 0), true);
       this.chassisBody.setAngvel(new RAPIER.Vector3(0, 0, 0), true);
 
       this.movement.accelerateForce.value = 0;
       this.movement.brakeForce.value = 0;
-
+      this.movement.reset = false;
+      
       return;
     }
 
