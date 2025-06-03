@@ -144,10 +144,10 @@ export class GameManager {
           console.log("forward");
         }
       }
-        if (event.key === "s") {
-          if ("forward" in mv) {
-            this.currentLevel.vm.movement.forward = 1;
-          }
+      if (event.key === "s") {
+        if ("forward" in mv) {
+          this.currentLevel.vm.movement.forward = 1;
+        }
         if (IS_DEBUG) {
           console.log("backward");
         }
@@ -208,18 +208,18 @@ export class GameManager {
           console.log("shoot");
         }
       }
-      if ( event.key === "r") {
-        if ("reset" in mv){
-        this.currentLevel.vm.movement.reset = true;
+      if (event.key === "r") {
+        if ("reset" in mv) {
+          this.currentLevel.vm.movement.reset = true;
         }
         if (IS_DEBUG) {
           console.log("reset");
         }
       }
       if (event.key === " ") {
-        if ("brake" in mv){
-        this.currentLevel.vm.movement.brake = 1;
-      }
+        if ("brake" in mv) {
+          this.currentLevel.vm.movement.brake = 1;
+        }
         if (IS_DEBUG) {
           console.log("brake");
         }
@@ -335,7 +335,9 @@ class LevelController {
     this.mm = new MapManager(this.sm, this.pm);
     this.vm = new VehicleManager();
     assetsManager.updateLevel(this.pm, this.sm, this.vm);
-    this.rapierDebugRender = new RapierDebugRenderer(this.sm, this.pm.world);
+    if (IS_DEBUG) {
+      this.rapierDebugRender = new RapierDebugRenderer(this.sm, this.pm.world);
+    }
     this.conditions = {
       allParked: false,
       //NOTE adicionar mais depois
