@@ -1,154 +1,393 @@
-import * as THREE from 'three';
-import * as RAPIER from '@dimforge/rapier3d';
-import Stats from 'stats.js';
-//import { DEBUG_CONFIG } from '../../testRapier/src/debug';
+//TODO : talvez diferenciar o tipo de bodies (dynamic, static, kinematic) e coliders (cuboid, ball, etc) em listas diferentes
+import * as THREE from "three";
+import * as RAPIER from "@dimforge/rapier3d";
 
-// TODO : alterar para "import { IS_DEBUG, initDebugListener, updateDebugStats } from './debug.js';" quando o debbuger estiver pronto
-export const IS_DEBUG = import.meta.env.DEV; // true em desenvolvimento, false em produção
+import { sm } from "gameManager";
+import { Car } from "car";
 
+import { RapierDebugRenderer } from "rapierDebug";
+import { IS_DEBUG } from "debugManager";
+
+export const frameRate = 60;
 const gravity = { x: 0.0, y: -9.81, z: 0.0 };
-let debugGeometry, debugLines;
-
 export class PhysicsManager {
-    constructor(sceneManager) {
-        this.world = new RAPIER.World(gravity);
-        this.eventQueue = new RAPIER.EventQueue(true);
-        this.sceneManager = sceneManager;
-        //this.objects = objects;
-        //TODO : ver se preciso disto 
-        //this.dt = 1 / 60;
-        if (IS_DEBUG) {
-                    
+  world;
+  meshes;
+  meshMap;
+
+  movement;
+  rapierDebugRender;
+  constructor(/* sceneManager */) {
+    //this.sceneManager = sm
+    this.world = new RAPIER.World(gravity);
+    this.meshes = [];
+    this.meshMap = new WeakMap();
+
+    // Vetores auxiliares para sincronização
+    this._vector = new THREE.Vector3();
+    this._quaternion = new THREE.Quaternion();
+    this._matrix = new THREE.Matrix4();
+    // Clock para o step
+    this.clock = new THREE.Clock();
+    // Loop de física
+    //this._interval = setInterval(() => this._step(), 1000 / frameRate);
+
+    this.eventQueue = new RAPIER.EventQueue(true);
+  }
+
+  addScene(scene) {
+    //TODO
+    scene.traverse(function (child) {
+      if (child.isMesh) {
+        const physics = child.userData.physics;
+
+        if (physics) {
+          //addMesh(child, physics.mass, physics.restitution);
         }
-    }
-
-    //TODO : melhorar os colideres do chão, de modo a incluir formais mais complexas, experimentar Trimesh
-    addGround(ground, bodyType = 'fixed', colliderType = 'cuboid') {
-        const groundBodyDesc = RAPIER.RigidBodyDesc.fixed(); // descriptor para corpo fixo
-        groundBodyDesc.setTranslation(0, 0, 0);//TODO : alterar aqui para uma variavel 
-        const groundBody = this.world.createRigidBody(groundBodyDesc);
-        const groundColliderDesc = RAPIER.ColliderDesc.cuboid(80, 0.5, 48); //TODO : alterar aqui para uma variavel // Half-extents (metade do tamanho)
-        groundColliderDesc.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
-        const groundCollider = this.world.createCollider(groundColliderDesc, groundBody);
-        ground.userData.physicsBody = groundBody; 
-        ground.userData.collisions = new Set(); // para em cada objeto saber com quem colidiu
-    }
-//FIXME : metodo provisorio
-    addCar(car){
-        const globalPos = new THREE.Vector3();
-        const globalQuat = new THREE.Quaternion();
-        car.getWorldPosition(globalPos);
-        car.getWorldQuaternion(globalQuat);
-        if(IS_DEBUG){
-            console.log(car.name , 'position:', globalPos);
-            console.log(car.name , 'quaternion:', globalQuat);
-        }
-
-        const bodyDesc = RAPIER.RigidBodyDesc.dynamic();
-        bodyDesc.setTranslation(globalPos.x, globalPos.y, globalPos.z);
-        bodyDesc.setRotation(globalQuat);
-        bodyDesc.setAdditionalMassProperties(
-            1000,                           // mass
-            { x: 0, y: 0, z: -4 },           // centerOfMass
-            { x: 1453.3, y: 1666.7, z: 453.3 },  // Momentos de inércia aproximados (em kg·m²)
-            { w: 1, x: 0, y: 0, z: 0 }           // Quat. identidade para o tensor (alinhado com os eixos do carro)
-          );
-        const body = this.world.createRigidBody(bodyDesc);
-        const colliderDesc = RAPIER.ColliderDesc.cuboid(4, 3.5, 8); 
-        colliderDesc.setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS);
-        colliderDesc.setTranslation(0,3,0); // para deslocar o colisor
-        colliderDesc.setDensity(0); // o colisor não contribuirá com massa
-        const groundCollider = this.world.createCollider(colliderDesc, body);
-        car.userData.physicsBody = body; 
-        car.userData.collisions = new Set(); 
-    }
-    #createBody(mesh, bodyType = 'dynamic', colliderType = 'cuboid') {
-         const bodyDesc = bodyType === 'fixed' ? 
-                    RAPIER.RigidBodyDesc.fixed() : 
-                    RAPIER.RigidBodyDesc.dynamic();
-    }
-    #getColliderDesc(type, scale) {
-        switch(type) {
-            case 'sphere':
-                return RAPIER.ColliderDesc.ball(scale.x);
-            case 'cylinder':
-                return RAPIER.ColliderDesc.cylinder(scale.y, scale.x);
-            /* case 'trimesh':
-                return this.createTrimeshCollider(scale); */
-            default: // cuboid
-                return RAPIER.ColliderDesc.cuboid(
-                    scale.x / 2,
-                    scale.y / 2,
-                    scale.z / 2
-                );
-        }
-    }
-    addConstraint(constraint) {
-        /* this.world.addConstraint(constraint); */
-    }
-
-    update() {
-        this.world.step(this.eventQueue);
-    }
-    syncGraphics() {
-        this.update();
-        this.sceneManager.sceneGraph.traverse((node) => {
-            if (/* node.isMesh && */ node.userData.physicsBody) {
-                const body = node.userData.physicsBody;
-                // Se for um corpo 'fixed', não sincroniza
-                if (body.bodyType() === RAPIER.RigidBodyType.Fixed) {
-                return; 
-                }
-                // faça a sincronização de posição/rotação
-                // 1) Pega a posição global do body
-                const t = body.translation(); 
-                const worldPos = new THREE.Vector3(t.x, t.y, t.z);
-
-                // 2) Converte para espaço local do pai
-                node.parent.worldToLocal(worldPos);
-                node.position.copy(worldPos);
-
-                // 3) Pega rotação global do body
-                const worldRot = body.rotation();
-                const worldQuat = new THREE.Quaternion(worldRot.x, worldRot.y, worldRot.z, worldRot.w);
-
-                // 4) Precisamos remover a rotação do pai
-                const parentQuat = new THREE.Quaternion();
-                node.parent.getWorldQuaternion(parentQuat);
-                parentQuat.invert();
-
-                // localRot = inv(parentRot) * worldRot
-                node.quaternion.copy(parentQuat).multiply(worldQuat);
-            }
-        });       
-        
-        if (IS_DEBUG){
-            const { vertices, colors } = this.world.debugRender();
-            // Atualizar geometria
-            debugGeometry.setAttribute(
-              'position', 
-              new THREE.BufferAttribute(vertices, 3)
-            );
-            debugGeometry.setAttribute(
-              'color', 
-              new THREE.BufferAttribute(
-                new Uint8Array(colors).map(c => c / 255), 
-                3,
-                true
-              )
-            );
-            debugGeometry.attributes.position.needsUpdate = true;
-            debugGeometry.attributes.color.needsUpdate = true;    
-        }
-    }
-    initDebugRenderer() {
-        debugGeometry = new THREE.BufferGeometry();
-        const material = new THREE.LineBasicMaterial({
-          vertexColors: true,
-          linewidth: 10
-        });
-        
-        debugLines = new THREE.LineSegments(debugGeometry, material);
-        this.sceneManager.sceneGraph.add(debugLines);
       }
+    });
+  }
+  addFixedMesh(mesh, body, name) {
+    //+: Para adicionar uma mesh fixa (static) da forma convencionada
+    if (!mesh.userData) {
+      mesh.userData = {};
+    }
+    if (!mesh.userData.physics) {
+      mesh.userData.physics = { body: body, collisions: new Set() };
+    } else {
+      mesh.userData.physics.body = body; // Atualiza o body
+      if (!mesh.userData.physics.collisions) {
+        mesh.userData.physics.collisions = new Set(); // Garante que collisions exista
+      }
+    }
+    mesh.userData.name = name;
+  }
+  addMesh(mesh, body, name) {
+    //+: Para adicionar e configurar a mesh da forma convencionada deste manager
+    this.meshes.push(mesh);
+    this.meshMap.set(mesh, body);
+    if (!mesh.userData) {
+      mesh.userData = {};
+    }
+    if (!mesh.userData.physics) {
+      mesh.userData.physics = { body: body, collisions: new Set() };
+    } else {
+      mesh.userData.physics.body = body; // Atualiza o body
+      if (!mesh.userData.physics.collisions) {
+        mesh.userData.physics.collisions = new Set(); // Garante que collisions exista
+      }
+    }
+    mesh.userData.name = name;
+  }
+  addGroup(group, body, name) {
+    this.meshes.push(group);
+    this.meshMap.set(group, body);
+
+    if (!group.userData) group.userData = {};
+    if (!group.userData.physics) {
+      group.userData.physics = { body: body, collisions: new Set() };
+    } else {
+      group.userData.physics.body = body;
+      if (!group.userData.physics.collisions) {
+        group.userData.physics.collisions = new Set();
+      }
+    }
+    group.userData.name = name;
+  }
+  removeMesh(mesh) {
+    //+: Para remover a mesh deste manager
+    const body = this.meshMap.get(mesh);
+    if (body) {
+      this.world.removeRigidBody(body);
+      const handles = body.colliderHandles ? body.colliderHandles() : [];
+      handles.forEach((handle) => this.world.removeCollider(handle));
+      this.meshMap.delete(mesh);
+      const index = this.meshes.indexOf(mesh);
+      if (index !== -1) {
+        this.meshes.splice(index, 1);
+      }
+    } else {
+      console.warn("removeMesh: Body não encontrado para a mesh:", mesh);
+    }
+  }
+
+  addHeightfield(mesh, width, depth, heights, scale) {
+    //TODO testar isto com o terrain
+    const shape = RAPIER.ColliderDesc.heightfield(width, depth, heights, scale);
+
+    const bodyDesc = RAPIER.RigidBodyDesc.fixed();
+    bodyDesc.setTranslation(mesh.position.x, mesh.position.y, mesh.position.z);
+    bodyDesc.setRotation(mesh.quaternion);
+
+    const body = world.createRigidBody(bodyDesc);
+    this.world.createCollider(shape, body);
+
+    if (!mesh.userData.physics) mesh.userData.physics = {};
+    mesh.userData.physics.body = body;
+
+    return body;
+  }
+
+  getSimpleColliderDesc(mesh) {
+    const geometry = mesh.geometry;
+    const parameters = geometry.parameters;
+    if (geometry.type === "BoxGeometry") {
+      console.log("getSimpleColliderDesc: BoxGeometry");
+      const sx = parameters.width !== undefined ? parameters.width / 2 : 0.5;
+      const sy = parameters.height !== undefined ? parameters.height / 2 : 0.5;
+      const sz = parameters.depth !== undefined ? parameters.depth / 2 : 0.5;
+
+      return RAPIER.ColliderDesc.cuboid(sx, sy, sz);
+    } else if (
+      geometry.type === "SphereGeometry" ||
+      geometry.type === "IcosahedronGeometry"
+    ) {
+      console.log("getSimpleColliderDesc: SphereGeometry");
+      const radius = parameters.radius !== undefined ? parameters.radius : 1;
+      return RAPIER.ColliderDesc.ball(radius);
+    } else if (geometry.type === "CylinderGeometry") {
+      console.log("getSimpleColliderDesc: CylinderGeometry");
+      const radius =
+        parameters.radiusBottom !== undefined ? parameters.radiusBottom : 0.5;
+      const length = parameters.height !== undefined ? parameters.height : 0.5;
+
+      return RAPIER.ColliderDesc.cylinder(length / 2, radius);
+    } else if (geometry.type === "CapsuleGeometry") {
+      console.log("getSimpleColliderDesc: CapsuleGeometry");
+      const radius = parameters.radius !== undefined ? parameters.radius : 0.5;
+      const length = parameters.height !== undefined ? parameters.height : 0.5;
+
+      return RAPIER.ColliderDesc.capsule(length / 2, radius);
+    } else {
+      console.warn("getSimpleColliderDesc: geometry não é um tipo suportado.");
+      return null;
+    }
+  }
+  getTrimeshColliderDesc(mesh) {
+    //+: Baseado numa mesh, cria um collider trimesh
+    const geometry = mesh.geometry;
+    if (!geometry.isBufferGeometry) {
+      console.warn(
+        "getTrimeshColliderDesc: mesh não é um BufferGeometry válido."
+      );
+      return null;
+    }
+    const vertices = [];
+    const vertex = new Vector3();
+    const position = geometry.getAttribute("position");
+
+    for (let i = 0; i < position.count; i++) {
+      vertex.fromBufferAttribute(position, i);
+      vertices.push(vertex.x, vertex.y, vertex.z);
+    }
+
+    // if the buffer is non-indexed, generate an index buffer
+    const indices =
+      geometry.getIndex() === null
+        ? Uint32Array.from(Array(parseInt(vertices.length / 3)).keys())
+        : geometry.getIndex().array;
+    const col = RAPIER.ColliderDesc.trimesh(vertices, indices);
+    return col;
+  }
+
+  getConvexMeshColliderDesc(mesh) {
+    //+: Baseado numa mesh, cria um collider convex
+    if (!mesh.isMesh) {
+      console.warn("createConvexMeshColliderDesc: mesh não é um Mesh válido.");
+      return null;
+    }
+    const verts = new Float32Array(
+      mesh.geometry.getAttribute("position").array
+    );
+
+    //!: ver qual das duas maneiras e melhor
+    /* const v = new THREE.Vector3();
+    let positions = [];
+    carMesh.updateMatrixWorld(true); // ensure world matrix is up to date
+    carMesh.traverse((o) => {
+      if (o.type === "Mesh") {
+        const positionAttribute = o.geometry.getAttribute("position");
+        for (let i = 0, l = positionAttribute.count; i < l; i++) {
+          v.fromBufferAttribute(positionAttribute, i);
+          v.applyMatrix4(o.parent.matrixWorld);
+          positions.push(...v);
+        }
+      }
+    }); */
+
+    const col = RAPIER.ColliderDesc.convexMesh(verts);
+    //col.setCollisionGroups(131073); //FIXME ainda nao sei se uso isto, nem onde por caso use
+    //col.setFriction(3); //FIXME
+    //col.setRestitution(0.1); //FIXME
+    //col.mass(1); //FIXME
+    //col.setTranslation(mesh.position.x, mesh.position.y, mesh.position.z);
+    return col;
+  }
+  addRoadTiles(roadGroup) {
+    //TODO
+  }
+  createJointData(desc) {
+    const {
+      type,
+      anchor1,
+      anchor2,
+      axis,
+      frame1,
+      frame2,
+      limits,
+      stiffness,
+      damping,
+      length,
+      axesMask,
+    } = desc;
+    let jointData;
+    switch (type) {
+      case "fixed":
+        // completely lock relative motion
+        return RAPIER.JointData.fixed(
+          new RAPIER.Vector3(...anchor1), // frame-A anchor
+          new RAPIER.Quaternion(...frame1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Quaternion(...frame2)
+        );
+
+      case "revolute":
+        // hinge about one axis
+        //TODO ver isto (tambem para as outras joints):
+        /*
+        if (frame1) jointData.setFrame1(new RAPIER.Rotation(...frame1));
+        if (frame2) jointData.setFrame2(new RAPIER.Rotation(...frame2));
+        */
+        jointData = RAPIER.JointData.revolute(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Vector3(...axis)
+        );
+        return jointData;
+
+      case "prismatic":
+        // slider along one axis
+        jointData = RAPIER.JointData.prismatic(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Vector3(...axis)
+        );
+        return jointData;
+
+      case "spherical":
+        // ball-and-socket
+        jointData = RAPIER.JointData.spherical(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2)
+        );
+
+      case "rope":
+        // rope of fixed length
+        jointData = RAPIER.JointData.rope(
+          length,
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2)
+        );
+        return jointData;
+
+      case "spring":
+        // spring between anchors
+        jointData = RAPIER.JointData.spring(
+          length,
+          stiffness,
+          damping,
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2)
+        );
+        return jointData;
+
+      case "generic":
+        // custom-mask locking
+        jointData = RAPIER.JointData.generic(
+          new RAPIER.Vector3(...anchor1),
+          new RAPIER.Vector3(...anchor2),
+          new RAPIER.Vector3(...axis),
+          axesMask
+        );
+        return jointData;
+
+      default:
+        throw new Error(`Unknown joint type: ${type}`);
+    }
+  }
+  addJoint(bodyA, bodyB, descriptor, wakeUpBodies = true) {
+    const jointData = this.createJointData(descriptor);
+    return this.world.createImpulseJoint(jointData, bodyA, bodyB, wakeUpBodies);
+  }
+  addConstraint(constraint) {
+    /* this.world.addConstraint(constraint); */
+  }
+  //TODO talvez a criação dos colliders e bodies seja feita aqui ou fazer mais funcoes mais especializadas
+  /* 
+  como por exemplo de uso: 
+  physicsManager.addCompoundMesh(bigrock, {
+    body: {
+      type:    'dynamic',
+      translation: bigrock.position.toArray(),      // [x,y,z]
+      rotation:    bigrock.quaternion.toArray()      // [x,y,z,w]
+    },
+    colliders: [
+      { shape: 'cuboid', halfExtents: [0.25,0.25,0.25], translation: mini_rock1.position.toArray() },
+      { shape: 'cuboid', halfExtents: [0.1,0.1,0.1],   translation: mini_rock2.position.toArray() },
+      { shape: 'cuboid', halfExtents: [0.1,0.1,0.1],   translation: mini_rock3.position.toArray() },
+      { shape: 'cuboid', halfExtents: [0.2,0.2,0.2],   translation: mini_rock4.position.toArray() },
+    ],
+    name: 'bigrock'
+  }); 
+  ou createBody(), ou um addMesh que dado RAPIER.RigidBodyDesc e RAPIER.ColliderDesc cria o body e collider
+  ou uma funcao que dado uma mesh cria as descrições dos colliders e bodies e depois chama o addMesh
+  */
+  logWorldState() {
+    console.log("=== RigidBodies no Mundo ===");
+    this.world.bodies.forEach((body, handle) => {
+      console.log(`Body ${handle}:`, body.translation(), body.colliders());
+    });
+
+    console.log("=== Colliders no Mundo ===");
+    this.world.colliders.forEach((collider, handle) => {
+      console.log(`Collider ${handle}:`, collider.shape);
+    });
+  }
+
+  //_step()
+  step(dt) {
+    //this.world.timestep = this.clock.getDelta();
+    this.world.timestep = dt;
+    this.world.step();
+
+    /* this.car.chassisMesh.position.copy(this.car.chassisBody.translation());
+    this.car.chassisMesh.quaternion.copy(this.car.chassisBody.rotation()); */
+
+    //Sync meshes
+    for (let obj of this.meshes) {
+      const body = this.meshMap.get(obj);
+      if (!body) continue;
+
+      if (obj.isInstancedMesh) {
+        const array = obj.instanceMatrix.array;
+        const bodies = body; // assume um array de bodies
+        for (let j = 0; j < bodies.length; j++) {
+          const b = bodies[j];
+          const pos = b.translation();
+          this._quaternion.copy(b.rotation());
+          this._matrix
+            .compose(pos, this._quaternion, this._vector)
+            .toArray(array, j * 16);
+        }
+        obj.instanceMatrix.needsUpdate = true;
+        obj.computeBoundingSphere();
+      } else if (obj.isGroup || obj.type === "Group") {
+        obj.position.copy(body.translation());
+        obj.quaternion.copy(body.rotation());
+      } else {
+        obj.position.copy(body.translation());
+        obj.quaternion.copy(body.rotation());
+      }
+    }
+  }
 }

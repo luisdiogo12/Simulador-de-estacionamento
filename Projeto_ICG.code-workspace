@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../Tests_ICG"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "Tests_ICG"
+	}
+}

@@ -1,3 +1,14 @@
+# Simulador de Estacionamento
+
+# 
+```bash
+npm install
+npm run dev
+```
+
+exemplos rapier:
+- https://github.com/mrdoob/three.js
+=======
 # Projeto de Introdução à Computação gráfica
 
 ## Simulador de estacionamento
