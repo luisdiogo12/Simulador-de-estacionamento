@@ -125,10 +125,6 @@ export class Car {
       colliderDesc,
       this.chassisBody
     );
-    //TODO :  isto vai para o physicsManager
-    //meshes.push(this.chassisMesh);
-    //meshMap.set(this.chassisMesh, this.chassisBody);
-    // fim de physics.addMesh
 
     if (!this.chassisMesh.userData.physics) {
       this.chassisMesh.userData.physics = {};

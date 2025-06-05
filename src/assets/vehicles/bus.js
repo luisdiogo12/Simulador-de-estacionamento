@@ -123,10 +123,6 @@ export class Bus {
       colliderDesc,
       this.chassisBody
     );
-    //TODO :  isto vai para o physicsManager
-    //meshes.push(this.chassisMesh);
-    //meshMap.set(this.chassisMesh, this.chassisBody);
-    // fim de physics.addMesh
 
     if (!this.chassisMesh.userData.physics) {
       this.chassisMesh.userData.physics = {};
@@ -155,7 +151,7 @@ export class Bus {
       direction: new RAPIER.Vector3(...Object.values({ x: 0, y: -1, z: 0 })),
       axle: new RAPIER.Vector3(...Object.values({ x: -1, y: 0, z: 0 })),
     };
-    // Adicionar roda ao controller
+
     this.controller.addWheel(
       wheelParams.position,
       wheelParams.direction,
@@ -164,7 +160,6 @@ export class Bus {
       wheelParams.radius
     );
 
-    // Configurar parâmetros da roda
     this.controller.setWheelSuspensionStiffness(
       index,
       wheelSuspensionStiffness

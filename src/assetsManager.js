@@ -50,8 +50,6 @@ class AssetManager {
     this.dracoLoader = new DRACOLoader();
     this.modelCache = new Map();
     this.assets = {
-      //TODO eliminar modelos deprecados
-      /* car: this._loadGLTF("SUV.glb"), */
       road: this._loadGLTFtiles("road/road_49/road_49.gltf"),
       road_turn_left: this._loadGLTFtiles("road/road_TL_49/road_TL_49.gltf"),
       road_turn_right: this._loadGLTFtiles("road/road_TR_49/road_TR_49.gltf"),
@@ -218,8 +216,7 @@ class AssetManager {
       options,
       this.pm.rapierDebugRender
     );
-    //car.chassisMesh.position.set(x, y, z); //FIXME
-    //car.chassisBody.setTranslation(x, y, z);
+
     this.pm.addMesh(car.chassisMesh, car.chassisBody, "car"); // add car to the physicsManager
     //this.sm.addToScene(car.chassisMesh); // add car to the sceneManager
     this.vm.addVehicle(car); // add car to the vehicleManager
@@ -254,8 +251,7 @@ class AssetManager {
       options,
       this.pm.rapierDebugRender
     );
-    //bulldozer.chassisMesh.position.set(x, y, z); //FIXME
-    //bulldozer.chassisBody.setTranslation(x, y, z);
+
     this.pm.addMesh(bulldozer.chassisMesh, bulldozer.chassisBody, "bulldozer"); // add bulldozer to the physicsManager
     this.sm.addToScene(bulldozer.chassisMesh); // add bulldozer to the sceneManager
     this.vm.addVehicle(bulldozer); // add bulldozer to the vehicleManager
@@ -290,8 +286,7 @@ class AssetManager {
       options,
       this.pm.rapierDebugRender
     );
-    //bus.chassisMesh.position.set(x, y, z); //FIXME
-    //bus.chassisBody.setTranslation(x, y, z);
+
     this.pm.addMesh(bus.chassisMesh, bus.chassisBody, "bus"); // add bus to the physicsManager
     //this.sm.addToScene(bus.chassisMesh); // add bus to the sceneManager
     this.vm.addVehicle(bus); // add bus to the vehicleManager
@@ -326,8 +321,7 @@ class AssetManager {
       options,
       this.pm.rapierDebugRender
     );
-    //tank.chassisMesh.position.set(x, y, z); //FIXME
-    //tank.chassisBody.setTranslation(x, y, z);
+
     this.pm.addMesh(tank.chassisMesh, tank.chassisBody, "tank"); // add tank to the physicsManager
     //this.sm.addToScene(tank.chassisMesh); // add tank to the sceneManager
     this.vm.addVehicle(tank); // add tank to the vehicleManager
@@ -362,10 +356,7 @@ class AssetManager {
       options,
       this.pm.rapierDebugRender
     );
-    //truck.chassisMesh.position.set(x, y, z); //FIXME
-    //truck.chassisBody.setTranslation(x, y, z);
-    //this.pm.addMesh(truck.chassisMesh, truck.chassisBody, "truck"); // add truck to the physicsManager
-    //this.sm.addToScene(truck.chassisMesh); // add truck to the sceneManager
+
     this.vm.addVehicle(truck); // add truck to the vehicleManager
     return truck;
   }

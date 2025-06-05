@@ -29,21 +29,11 @@ if (groundColliders){
 
 
 const heightsPath = import.meta.env.BASE_URL + "heightMaps";
-const h0 = "/gen_c4.png";
-const h12 = "/t0.jpg";
-const h1 = "/Hand_made_terrain_heightmap.png";
+const h1 = "/gen_c4.png";
 const h2 = "/t1.jpg";
-const h3 = "/dIf3nPq.jpeg";
-const h4 = "/46_294_-85_748_9_505_520.png";
-const h5 = "/ZjOyoNP.png";
-const h6 = "/generated_h.png";
-const h7 = "/criado.png";
-const h8 = "/generated2.png";
-const h9 = "/generated3.png";
-const h10 = "/gen_c.png";
-const h11 = "/gen_c3.png";
-const h13 = "/test.png";
-const h = h0;
+const h3 = "/generated.png";
+const h4 = "/test.png";
+const h = h1;
 const usePositive = true;
 function normalize(v, vmin, vmax) {
   const noise = (Math.random() - 0.5) * 0.1; // -0.05 a 0.05
@@ -64,7 +54,6 @@ export async function createTerrain(physicsManager, sceneManager) {
     const img = texture.image;
     console.log("img", img);
 
-    // 1) desenha a imagem em canvas para extrair imgData
     const canvas = document.createElement("canvas");
     canvas.width = img.width;
     canvas.height = img.height;
@@ -72,11 +61,6 @@ export async function createTerrain(physicsManager, sceneManager) {
     ctx.drawImage(img, 0, 0);
     const imgData = ctx.getImageData(0, 0, img.width, img.height).data;
 
-    // 2) monta heightData com dimensões widthSegments x heightSegments
-    //    (mesmo padrão do demo: Float32Array de tamanho widthSegments * heightSegments).
-    //    aqui assumimos que img.width == terrainWidthSegments e
-    //    img.height == terrainHeightSegments, ou que vamos amostrar a imagem
-    //    para obter exatamente esse número de pontos.
     const wSamples = terrainWidthSegments;
     const hSamples = terrainHeightSegments;
     const heightData = new Float32Array(wSamples * hSamples);
@@ -105,10 +89,9 @@ export async function createTerrain(physicsManager, sceneManager) {
           ((centerZ - rotatedZ) / (hSamples - 1)) * (img.height - 1)
         );
         const idx = (py * img.width + px) * 4;
-        // usa componente R como heightmap em tons de cinza
         let hVal;
         if (usePositive) {
-          hVal = imgData[idx] / 255; // 0 a 1
+          hVal = imgData[idx] / 255; 
         } else {
           hVal = 1 - imgData[idx] / 255; // invertido
         }
@@ -118,7 +101,6 @@ export async function createTerrain(physicsManager, sceneManager) {
       }
     }
 
-    // 3) cria geometria e desloca vértices (igual ao seu original)
     const geo = new THREE.PlaneGeometry(
       terrainWidth,
       terrainHeight,
@@ -132,7 +114,7 @@ export async function createTerrain(physicsManager, sceneManager) {
     const colors = new Float32Array(posAttr.count * 3);
 
     for (let vIndex = 0; vIndex < posAttr.count; vIndex++) {
-      // calcula u,v para encontrar o pixel correspondente àquele vértice
+      // calcula u,v para encontrar o pixel correspondente ao vertice
       const u = uvAttr.getX(vIndex);
       const v = uvAttr.getY(vIndex);
       const px = Math.floor(u * (img.width - 1));
@@ -179,8 +161,7 @@ export async function createTerrain(physicsManager, sceneManager) {
 
     geo.computeVertexNormals();
     geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-    // 4) cria mesh e adiciona sombra, etc.
+    
     const mat = new THREE.MeshPhongMaterial({
       vertexColors: true,
       flatShading: false,
@@ -191,9 +172,6 @@ export async function createTerrain(physicsManager, sceneManager) {
     mesh.name = "terrain";
     mesh.receiveShadow = true;
     mesh.position.set(0, -46, 0);
-
-    // 5) agora chame addHeightfield usando o heightData criada acima:
-    //    note que o Rapier espera (mesh, widthSamples-1, depthSamples-1, data, { x: larguraNoMundo, y: 1, z: profundidadeNoMundo })
 
     if (groundColliders) {
       physicsManager.addHeightfield(

@@ -156,10 +156,6 @@ export class Bulldozer {
       this.chassisMesh.add(improvMesh);
     }
     this.chassisMesh.add(pivot); //+:const pivot = this.chassisMesh.getObjectByName("pivot");
-    //TODO :  isto vai para o physicsManager
-    //meshes.push(this.chassisMesh);
-    //meshMap.set(this.chassisMesh, this.chassisBody);
-    // fim de physics.addMesh
 
     if (!this.chassisMesh.userData.physics) {
       this.chassisMesh.userData.physics = {};
