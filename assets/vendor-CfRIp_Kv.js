@@ -1,4 +1,4 @@
-let BA, Qe, bn, iC, XA, Za, mn, Ja, Ar, zA, Nn, xf, tr, AA, Ur, xe, mi, ir, Cr, nC, CA, si, H, vf, Sf, Ln, Bh, le, Zt, on, HA, qh, kA, VA, Jr, Je, Qh, Xh, jA, WA, Te, Dn, KR, Kh, hh, lc, sC, Kn, Ds, Zh, wn, Lo, aC, eC, mf, bs, Eo, jh, He, Es, Ms, Us, ei, Ls, ri, Vn, ne, vi, ni, lf, at, tC, FA, rC, Ud, ru, Ya, JA, Wh, Pr, LA, NA, $e, PA, DA, IA, cn, ar, Of, sn, kt, te, $A, GA, YA, KA, ZA, Gt, Jc, qA, QA, OA, Jn, Ks, lu;
+let zA, Qe, bn, rC, qA, Za, mn, Ja, Ar, HA, Nn, xf, tr, AA, Ur, xe, mi, ir, Cr, iC, CA, si, H, vf, Sf, Ln, Bh, le, Zt, on, kA, qh, VA, GA, Jr, Je, Qh, Xh, XA, lc, aC, Te, Dn, Kn, KR, hh, Ds, jA, Pr, Kh, Zh, wn, Lo, LA, nC, oC, mf, bs, Eo, jh, He, Es, Ms, Us, ei, Ls, ri, Vn, ne, vi, ni, lf, at, eC, OA, sC, Ud, ru, Ya, gl, $A, Wh, UA, FA, $e, PA, DA, IA, cn, ar, Of, sn, kt, te, QA, WA, KA, ZA, JA, Gt, Jc, YA, tC, BA, Jn, Ks, lu;
 let __tla = (async ()=>{
     let Fo, Dd, gc, Ld, xh, In, Xe, Qn, Xi, wc, bc, yc, Nd, wi, Fd, Od, Bd, zd, Hd, kd, Vd, Gd, za, Ha, Wd, jd, Xd, qd, Yd, Kd, Zd, Jd, $d, ka, Va, Ga, Ki, Wa, ja, Xa, qa, Oo, Qd, tu, ti, eu, nu, iu, su, au, ou, vc, cu, Sh, Zi, Ji, Ka, Is, Bn, Mh, Eh, xr, Bo, yi, zo, Ho, $i, Th, Rh, Ah, an, Ch, Ph, qi, Qi, ko, Vo, Ih, Go, Wo, fs, ps, _s, ms, $a, Qa, to, eo, no, io, ro, so, ao, oo, co, lo, ho, uo, fo, po, _o, mo, go, wo, bo, gs, yo, vo, Dh, xo, So, Mo, Zs, xc, Sc, Mc, hu, du, uu, jo, fu, Zn, ys, ce, Ri, Ec, pu, _u, mu, Lh, gu, wu, bu, yu, To, Tc, Fn, vs;
     Fo = "174";
@@ -170,6 +170,7 @@ let __tla = (async ()=>{
     bu = 518;
     yu = 519;
     To = 35044;
+    LA = 35048;
     Tc = "300 es";
     Fn = 2e3;
     vs = 2001;
@@ -589,7 +590,7 @@ let __tla = (async ()=>{
                 throw new Error("Invalid component type.");
         }
     }
-    LA = {
+    UA = {
         DEG2RAD: br,
         RAD2DEG: er,
         generateUUID: gn,
@@ -3515,7 +3516,7 @@ let __tla = (async ()=>{
         const t = i >> 10;
         return Un.uint32View[0] = Un.mantissaTable[Un.offsetTable[t] + (i & 1023)] + Un.exponentTable[t], Un.floatView[0];
     }
-    NA = class {
+    FA = class {
         static toHalfFloat(t) {
             return nf(t);
         }
@@ -4504,7 +4505,7 @@ let __tla = (async ()=>{
             };
         }
     };
-    FA = class extends xe {
+    OA = class extends xe {
         constructor(){
             super(), this.isScene = !0, this.type = "Scene", this.background = null, this.environment = null, this.fog = null, this.backgroundBlurriness = 0, this.backgroundIntensity = 1, this.backgroundRotation = new wn, this.environmentIntensity = 1, this.environmentRotation = new wn, this.overrideMaterial = null, typeof __THREE_DEVTOOLS__ < "u" && __THREE_DEVTOOLS__.dispatchEvent(new CustomEvent("observe", {
                 detail: this
@@ -4518,7 +4519,7 @@ let __tla = (async ()=>{
             return this.fog !== null && (e.object.fog = this.fog.toJSON()), this.backgroundBlurriness > 0 && (e.object.backgroundBlurriness = this.backgroundBlurriness), this.backgroundIntensity !== 1 && (e.object.backgroundIntensity = this.backgroundIntensity), e.object.backgroundRotation = this.backgroundRotation.toArray(), this.environmentIntensity !== 1 && (e.object.environmentIntensity = this.environmentIntensity), e.object.environmentRotation = this.environmentRotation.toArray(), e;
         }
     };
-    OA = class {
+    BA = class {
         constructor(t, e){
             this.isInterleavedBuffer = !0, this.array = t, this.stride = e, this.count = t !== void 0 ? t.length / e : 0, this.usage = To, this.updateRanges = [], this.version = 0, this.uuid = gn();
         }
@@ -4671,7 +4672,7 @@ let __tla = (async ()=>{
         }
     };
     const jc = new H, Xc = new ne, qc = new ne, _f = new H, Yc = new Gt, $r = new H, ga = new Vn, Kc = new Gt, wa = new Cr;
-    BA = class extends on {
+    zA = class extends on {
         constructor(t, e){
             super(t, e), this.isSkinnedMesh = !0, this.type = "SkinnedMesh", this.bindMode = vc, this.bindMatrix = new Gt, this.bindMatrixInverse = new Gt, this.boundingBox = null, this.boundingSphere = null;
         }
@@ -4842,7 +4843,7 @@ let __tla = (async ()=>{
         }
     };
     const Hi = new Gt, $c = new Gt, Qr = [], Qc = new ri, wf = new Gt, pr = new on, _r = new Vn;
-    zA = class extends on {
+    HA = class extends on {
         constructor(t, e, n){
             super(t, e), this.isInstancedMesh = !0, this.instanceMatrix = new Jc(new Float32Array(n * 16), 16), this.instanceColor = null, this.morphTexture = null, this.count = n, this.boundingBox = null, this.boundingSphere = null;
             for(let r = 0; r < n; r++)this.setMatrixAt(r, wf);
@@ -5118,7 +5119,7 @@ let __tla = (async ()=>{
         };
     }
     const nl = new H, il = new H;
-    HA = class extends qh {
+    kA = class extends qh {
         constructor(t, e){
             super(t, e), this.isLineSegments = !0, this.type = "LineSegments";
         }
@@ -5132,7 +5133,7 @@ let __tla = (async ()=>{
             return this;
         }
     };
-    kA = class extends qh {
+    VA = class extends qh {
         constructor(t, e){
             super(t, e), this.isLineLoop = !0, this.type = "LineLoop";
         }
@@ -5146,7 +5147,7 @@ let __tla = (async ()=>{
         }
     };
     const rl = new Gt, Ro = new Cr, is = new Vn, rs = new H;
-    VA = class extends xe {
+    GA = class extends xe {
         constructor(t = new bn, e = new xf){
             super(), this.isPoints = !0, this.type = "Points", this.geometry = t, this.material = e, this.morphTargetDictionary = void 0, this.morphTargetInfluences = void 0, this.updateMorphTargets();
         }
@@ -5357,7 +5358,7 @@ let __tla = (async ()=>{
             }, this.color.copy(t.color), this.roughness = t.roughness, this.metalness = t.metalness, this.map = t.map, this.lightMap = t.lightMap, this.lightMapIntensity = t.lightMapIntensity, this.aoMap = t.aoMap, this.aoMapIntensity = t.aoMapIntensity, this.emissive.copy(t.emissive), this.emissiveMap = t.emissiveMap, this.emissiveIntensity = t.emissiveIntensity, this.bumpMap = t.bumpMap, this.bumpScale = t.bumpScale, this.normalMap = t.normalMap, this.normalMapType = t.normalMapType, this.normalScale.copy(t.normalScale), this.displacementMap = t.displacementMap, this.displacementScale = t.displacementScale, this.displacementBias = t.displacementBias, this.roughnessMap = t.roughnessMap, this.metalnessMap = t.metalnessMap, this.alphaMap = t.alphaMap, this.envMap = t.envMap, this.envMapRotation.copy(t.envMapRotation), this.envMapIntensity = t.envMapIntensity, this.wireframe = t.wireframe, this.wireframeLinewidth = t.wireframeLinewidth, this.wireframeLinecap = t.wireframeLinecap, this.wireframeLinejoin = t.wireframeLinejoin, this.flatShading = t.flatShading, this.fog = t.fog, this;
         }
     };
-    GA = class extends Sf {
+    WA = class extends Sf {
         constructor(t){
             super(), this.isMeshPhysicalMaterial = !0, this.defines = {
                 STANDARD: "",
@@ -5419,7 +5420,7 @@ let __tla = (async ()=>{
             ], this.iridescenceThicknessMap = t.iridescenceThicknessMap, this.sheen = t.sheen, this.sheenColor.copy(t.sheenColor), this.sheenColorMap = t.sheenColorMap, this.sheenRoughness = t.sheenRoughness, this.sheenRoughnessMap = t.sheenRoughnessMap, this.transmission = t.transmission, this.transmissionMap = t.transmissionMap, this.thickness = t.thickness, this.thicknessMap = t.thicknessMap, this.attenuationDistance = t.attenuationDistance, this.attenuationColor.copy(t.attenuationColor), this.specularIntensity = t.specularIntensity, this.specularIntensityMap = t.specularIntensityMap, this.specularColor.copy(t.specularColor), this.specularColorMap = t.specularColorMap, this;
         }
     };
-    WA = class extends si {
+    jA = class extends si {
         constructor(t){
             super(), this.isMeshPhongMaterial = !0, this.type = "MeshPhongMaterial", this.color = new kt(16777215), this.specular = new kt(1118481), this.shininess = 30, this.map = null, this.lightMap = null, this.lightMapIntensity = 1, this.aoMap = null, this.aoMapIntensity = 1, this.emissive = new kt(0), this.emissiveIntensity = 1, this.emissiveMap = null, this.bumpMap = null, this.bumpScale = 1, this.normalMap = null, this.normalMapType = jo, this.normalScale = new Zt(1, 1), this.displacementMap = null, this.displacementScale = 1, this.displacementBias = 0, this.specularMap = null, this.alphaMap = null, this.envMap = null, this.envMapRotation = new wn, this.combine = Oo, this.reflectivity = 1, this.refractionRatio = .98, this.wireframe = !1, this.wireframeLinewidth = 1, this.wireframeLinecap = "round", this.wireframeLinejoin = "round", this.flatShading = !1, this.fog = !0, this.setValues(t);
         }
@@ -5800,7 +5801,7 @@ let __tla = (async ()=>{
     Es = class extends Sn {
     };
     Es.prototype.ValueTypeName = "vector";
-    jA = class {
+    XA = class {
         constructor(t = "", e = -1, n = [], r = hu){
             this.name = t, this.tracks = n, this.duration = e, this.blendMode = r, this.uuid = gn(), this.duration < 0 && this.resetDuration();
         }
@@ -6159,7 +6160,7 @@ let __tla = (async ()=>{
             return o.addEventListener("load", c, !1), o.addEventListener("error", l, !1), t.slice(0, 5) !== "data:" && this.crossOrigin !== void 0 && (o.crossOrigin = this.crossOrigin), s.manager.itemStart(t), o.src = t, o;
         }
     }
-    XA = class extends ar {
+    qA = class extends ar {
         constructor(t){
             super(t);
         }
@@ -6180,7 +6181,7 @@ let __tla = (async ()=>{
             }, n, r), a;
         }
     };
-    qA = class extends ar {
+    YA = class extends ar {
         constructor(t){
             super(t);
         }
@@ -6253,7 +6254,7 @@ let __tla = (async ()=>{
             return super.copy(t), this.focus = t.focus, this;
         }
     }
-    YA = class extends Ns {
+    KA = class extends Ns {
         constructor(t, e, n = 0, r = Math.PI / 3, s = 0, a = 2){
             super(t, e), this.isSpotLight = !0, this.type = "SpotLight", this.position.copy(xe.DEFAULT_UP), this.updateMatrix(), this.target = new xe, this.distance = n, this.angle = r, this.penumbra = s, this.decay = a, this.map = null, this.shadow = new zf;
         }
@@ -6301,7 +6302,7 @@ let __tla = (async ()=>{
             s !== n.far && (n.far = s, n.updateProjectionMatrix()), gr.setFromMatrixPosition(t.matrixWorld), n.position.copy(gr), xa.copy(n.position), xa.add(this._cubeDirections[e]), n.up.copy(this._cubeUps[e]), n.lookAt(xa), n.updateMatrixWorld(), r.makeTranslation(-gr.x, -gr.y, -gr.z), ll.multiplyMatrices(n.projectionMatrix, n.matrixWorldInverse), this._frustum.setFromProjectionMatrix(ll);
         }
     }
-    KA = class extends Ns {
+    ZA = class extends Ns {
         constructor(t, e, n = 0, r = 2){
             super(t, e), this.isPointLight = !0, this.type = "PointLight", this.distance = n, this.decay = r, this.shadow = new Hf;
         }
@@ -6358,7 +6359,7 @@ let __tla = (async ()=>{
             super(new Qh(-5, 5, 5, -5, .5, 500)), this.isDirectionalLightShadow = !0;
         }
     }
-    ZA = class extends Ns {
+    JA = class extends Ns {
         constructor(t, e){
             super(t, e), this.isDirectionalLight = !0, this.type = "DirectionalLight", this.position.copy(xe.DEFAULT_UP), this.updateMatrix(), this.target = new xe, this.shadow = new kf;
         }
@@ -6369,12 +6370,12 @@ let __tla = (async ()=>{
             return super.copy(t), this.target = t.target.clone(), this.shadow = t.shadow.clone(), this;
         }
     };
-    JA = class extends Ns {
+    $A = class extends Ns {
         constructor(t, e){
             super(t, e), this.isAmbientLight = !0, this.type = "AmbientLight";
         }
     };
-    $A = class {
+    QA = class {
         static decodeText(t) {
             if (console.warn("THREE.LoaderUtils: decodeText() has been deprecated with r165 and will be removed with r175. Use TextDecoder instead."), typeof TextDecoder < "u") return new TextDecoder().decode(t);
             let e = "";
@@ -6393,7 +6394,7 @@ let __tla = (async ()=>{
             return typeof t != "string" || t === "" ? "" : (/^https?:\/\//i.test(e) && /^\//.test(t) && (e = e.replace(/(^https?:\/\/[^\/]+).*/i, "$1")), /^(https?:)?\/\//i.test(t) || /^data:.*,.*$/i.test(t) || /^blob:.*$/i.test(t) ? t : e + t);
         }
     };
-    QA = class extends ar {
+    tC = class extends ar {
         constructor(t){
             super(t), this.isImageBitmapLoader = !0, typeof createImageBitmap > "u" && console.warn("THREE.ImageBitmapLoader: createImageBitmap() not supported."), typeof fetch > "u" && console.warn("THREE.ImageBitmapLoader: fetch() not supported."), this.options = {
                 premultiplyAlpha: "none"
@@ -6439,7 +6440,7 @@ let __tla = (async ()=>{
             super(), this.isArrayCamera = !0, this.cameras = t, this.index = 0;
         }
     }
-    tC = class {
+    eC = class {
         constructor(t = !0){
             this.autoStart = t, this.startTime = 0, this.oldTime = 0, this.elapsedTime = 0, this.running = !1;
         }
@@ -6736,7 +6737,7 @@ let __tla = (async ()=>{
         ]
     ];
     const dl = new Gt;
-    eC = class {
+    nC = class {
         constructor(t, e, n = 0, r = 1 / 0){
             this.ray = new Cr(t, e), this.near = n, this.far = r, this.camera = null, this.layers = new Yo, this.params = {
                 Mesh: {},
@@ -6777,7 +6778,7 @@ let __tla = (async ()=>{
             for(let a = 0, o = s.length; a < o; a++)Ao(s[a], t, e, !0);
         }
     }
-    nC = class {
+    iC = class {
         constructor(t = 1, e = 0, n = 0){
             this.radius = t, this.phi = e, this.theta = n;
         }
@@ -6800,7 +6801,7 @@ let __tla = (async ()=>{
             return new this.constructor().copy(this);
         }
     };
-    iC = class extends Ei {
+    rC = class extends Ei {
         constructor(t, e = null){
             super(), this.object = t, this.domElement = e, this.enabled = !0, this.state = -1, this.keys = {}, this.mouseButtons = {
                 LEFT: null,
@@ -11923,7 +11924,7 @@ void main() {
         new H(-1, 1, 1),
         new H(1, 1, 1)
     ], Hm = new H;
-    class gl {
+    gl = class {
         constructor(t){
             this._renderer = t, this._pingPongRenderTarget = null, this._lodMax = 0, this._cubeSize = 0, this._lodPlanes = [], this._sizeLods = [], this._sigmas = [], this._blurMaterial = null, this._cubemapMaterial = null, this._equirectMaterial = null, this._compileMaterial(this._blurMaterial);
         }
@@ -12058,7 +12059,7 @@ void main() {
             const M = this._sizeLods[r], N = 3 * M * (r > T - Wi ? r - T + Wi : 0), C = 4 * (this._cubeSize - M);
             os(e, N, C, 3 * M, 2 * M), c.setRenderTarget(e), c.render(u, Sa);
         }
-    }
+    };
     function km(i) {
         const t = [], e = [], n = [];
         let r = i;
@@ -15770,7 +15771,7 @@ void main() {
             dispose: _
         };
     }
-    rC = class {
+    sC = class {
         constructor(t = {}){
             const { canvas: e = Ou(), context: n = null, depth: r = !0, stencil: s = !1, alpha: a = !1, antialias: o = !1, premultipliedAlpha: c = !0, preserveDrawingBuffer: l = !1, powerPreference: h = "default", failIfMajorPerformanceCaveat: u = !1, reverseDepthBuffer: f = !1 } = t;
             this.isWebGLRenderer = !0;
@@ -21472,7 +21473,7 @@ void main() {
             return this.raw.max_force_magnitude();
         }
     }
-    sC = class {
+    aC = class {
         constructor(t, e){
             this.raw = e || new ld(t);
         }
@@ -21916,7 +21917,7 @@ void main() {
             return this.map.getAll();
         }
     }
-    aC = function(i) {
+    oC = function(i) {
         return {
             all: i = i || new Map,
             on: function(t, e) {
@@ -21940,4 +21941,4 @@ void main() {
         };
     };
 })();
-export { BA as $, Qe as A, bn as B, iC as C, XA as D, Za as E, mn as F, Ja as G, Ar as H, zA as I, Nn as J, xf as K, tr as L, AA as M, Ur as N, xe as O, mi as P, ir as Q, Cr as R, nC as S, CA as T, si as U, H as V, vf as W, Sf as X, Ln as Y, Bh as Z, le as _, Zt as a, on as a0, HA as a1, qh as a2, kA as a3, VA as a4, Jr as a5, Je as a6, Qh as a7, Xh as a8, jA as a9, WA as aA, Te as aB, Dn as aC, KR as aD, Kh as aE, hh as aF, lc as aG, sC as aH, Kn as aI, Ds as aJ, Zh as aK, wn as aL, Lo as aM, aC as aN, eC as aO, mf as aa, bs as ab, Eo as ac, jh as ad, He as ae, Es as af, Ms as ag, Us as ah, ei as ai, Ls as aj, ri as ak, Vn as al, ne as am, vi as an, ni as ao, lf as ap, at as aq, tC as ar, FA as as, rC as at, Ud as au, ru as av, Ya as aw, JA as ax, Wh as ay, Pr as az, LA as b, NA as c, $e as d, PA as e, DA as f, IA as g, cn as h, ar as i, Of as j, sn as k, kt as l, te as m, $A as n, GA as o, YA as p, KA as q, ZA as r, Gt as s, Jc as t, qA as u, QA as v, OA as w, Jn as x, Ks as y, lu as z, __tla };
+export { zA as $, Qe as A, bn as B, rC as C, qA as D, Za as E, mn as F, Ja as G, Ar as H, HA as I, Nn as J, xf as K, tr as L, AA as M, Ur as N, xe as O, mi as P, ir as Q, Cr as R, iC as S, CA as T, si as U, H as V, vf as W, Sf as X, Ln as Y, Bh as Z, le as _, Zt as a, on as a0, kA as a1, qh as a2, VA as a3, GA as a4, Jr as a5, Je as a6, Qh as a7, Xh as a8, XA as a9, lc as aA, aC as aB, Te as aC, Dn as aD, Kn as aE, KR as aF, hh as aG, Ds as aH, jA as aI, Pr as aJ, Kh as aK, Zh as aL, wn as aM, Lo as aN, LA as aO, nC as aP, oC as aQ, mf as aa, bs as ab, Eo as ac, jh as ad, He as ae, Es as af, Ms as ag, Us as ah, ei as ai, Ls as aj, ri as ak, Vn as al, ne as am, vi as an, ni as ao, lf as ap, at as aq, eC as ar, OA as as, sC as at, Ud as au, ru as av, Ya as aw, gl as ax, $A as ay, Wh as az, UA as b, FA as c, $e as d, PA as e, DA as f, IA as g, cn as h, ar as i, Of as j, sn as k, kt as l, te as m, QA as n, WA as o, KA as p, ZA as q, JA as r, Gt as s, Jc as t, YA as u, tC as v, BA as w, Jn as x, Ks as y, lu as z, __tla };
