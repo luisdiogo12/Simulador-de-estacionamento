@@ -1,9 +1,25 @@
-Simulador de estacionamento
+Título: 	 
+	Simulador de estacionamento
 
-Luís Manuel Trindade Diogo
+Autor:  	 
+	Luís Manuel Trindade Diogo
 
-https://github.com/luisdiogo12/Simulador-de-estacionamento
+URL repositório: 
+	https://github.com/luisdiogo12/Simulador-de-estacionamento
 
-https://luisdiogo12.github.io/Simulador-de-estacionamento/
+URL website: 	 
+	https://luisdiogo12.github.io/Simulador-de-estacionamento/
 
-http://localhost:5173/Simulador-de-estacionamento/
+Executar o projeto:
+	necessário ter o Node.js instalado.
+
+	# para instalar todas as dependências do projeto
+	>npm install
+
+	# para iniciar o servidor de desenvolvimento fazer:
+	>npm run dev
+	# ou para iniciar o servidor de produção fazer:
+	>npm run build-and-preview
+
+	para o servidor de desenvolvimento, aceder a http://localhost:5173/Simulador-de-estacionamento/ no browser.
+	para o servidor de produção, aceder a http://localhost:4173/Simulador-de-estacionamento/ no browser.

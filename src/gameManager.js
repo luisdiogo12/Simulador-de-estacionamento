@@ -51,7 +51,13 @@ export class GameManager {
   stop() {
     cancelAnimationFrame(this._rafId);
   }
-
+/**
+ * Descrição:
+ * Este método é o loop principal do jogo, que é chamado a cada frame.
+ * Ele calcula o tempo decorrido desde o último frame, atualiza a física e os veículos,
+ * e renderiza a cena.
+ * @param {*} nowMs 
+ */
   _loop = (nowMs) => {
     if (IS_DEBUG) {
       this.stats.begin();
