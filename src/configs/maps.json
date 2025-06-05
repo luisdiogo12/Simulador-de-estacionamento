@@ -43,6 +43,27 @@
       },
       {
         "type": "road",
+        "position": { "x": -4, "y": 0, "z": 3 },
+        "colliderType": "cuboid",
+        "rotation": { "x": 0, "y": 4.7, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      {
+        "type": "road",
+        "position": { "x": -4, "y": 0, "z": 4 },
+        "colliderType": "cuboid",
+        "rotation": { "x": 0, "y": 4.7, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      {
+        "type": "road",
+        "position": { "x": -4, "y": 0, "z": 5 },
+        "colliderType": "cuboid",
+        "rotation": { "x": 0, "y": 4.7, "z": 0 },
+        "scale": { "x": 1, "y": 1, "z": 1 }
+      },
+      {
+        "type": "road",
         "position": { "x": -5, "y": 0, "z": 1 },
         "colliderType": "cuboid",
         "rotation": { "x": 0, "y": 3.1, "z": 0 },

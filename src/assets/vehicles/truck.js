@@ -70,8 +70,9 @@ export class Truck {
       reset: false,
       accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
       brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
-      appendixUp: 0, //TODO
-      appendixRight: 0, //TODO para abrir o bucket
+      appendixUp: 0, //levantar/baixar balde
+      appendixRight: 0, //TODO para abrir/fechar balde
+      lightsOn: 0, //TODO
     };
     this.scene = scene;
     this.sceneManager = sceneManager;

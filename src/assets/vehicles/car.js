@@ -57,6 +57,7 @@ export class Car {
       reset: false,
       accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
       brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
+      lightsOn: 0, //TODO
     };
     this.scene = scene;
     this.sceneManager = sceneManager;
@@ -207,7 +208,7 @@ export class Car {
       this.movement.accelerateForce.value = 0;
       this.movement.brakeForce.value = 0;
       this.movement.reset = false;
-      
+
       return;
     }
 

@@ -164,3 +164,5 @@ class CarVisual {
 - https://3d-mapper.com
 - https://manticorp.github.io/unrealheightmap
 - https://imgur.com/a/dusty-biome-heightmap-big-shoulder-games-Br6plqE
+- https://github.com/pmndrs/react-three-rapier/blob/main/packages/react-three-rapier/src/components/InstancedRigidBodies.tsx
+- https://github.com/bobbyroe/Simple-Particle-Effects
