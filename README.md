@@ -1,6 +1,7 @@
 # Projeto ICG - Simulador de Estacionamento
 
-## 
+##  Executar o projeto
+- Para executar o projeto, é necessário ter o Node.js instalado.
 ```bash
 npm install
 npm run dev
