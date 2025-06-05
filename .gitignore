@@ -52,10 +52,6 @@ desktop.ini
 coverage
 .nyc_output
 
-# Debug
-debug
-.debug
-
 # Arquivos temporários
 *.tmp
 *.bak
