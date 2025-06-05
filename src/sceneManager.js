@@ -82,6 +82,16 @@ export class SceneManager {
         console.log("HDR texture loaded:", texture);
       }
       texture.mapping = THREE.EquirectangularReflectionMapping;
+      
+      const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+      pmremGenerator.compileEquirectangularShader();
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = true;
+      texture.needsUpdate = true;
+      //const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+      //this.sceneGraph.background = envMap;
+      //this.sceneGraph.environment = envMap;
       this.sceneGraph.background = texture;
       this.sceneGraph.environment = texture;
   
@@ -89,7 +99,7 @@ export class SceneManager {
 
   initLights() {
     //+: Luz ambiente suave para preencher sombras
-    const L_ambient = new THREE.AmbientLight(0xffffff, 0.4);
+    const L_ambient = new THREE.AmbientLight(0xffffff, 0.8);
     this.sceneGraph.add(L_ambient);
 
     //+: HemisphereLight para simular céu vs. chão
@@ -106,31 +116,31 @@ export class SceneManager {
     } */
 
     //+: DirectionalLight - sol
-    const L_sun = new THREE.DirectionalLight(0xffffa0, 2.8);
-    const height = 15;
+    /* const L_sun = new THREE.DirectionalLight(0xffffa0, 2.2);
+    const height = 40;
     L_sun.position.set(0, height, 0); //?: luz de meio dia
     L_sun.castShadow = true;
     // configuração de sombras
     const d = 200;
     L_sun.shadow.camera.near = 0; //distancia minima da camera de sombra
-    L_sun.shadow.camera.far = height*2; //disntancia maxima que a camera de sombra ve
+    L_sun.shadow.camera.far = height + 40; //disntancia maxima que a camera de sombra ve
     //limites lateriais da ortho-camera
     L_sun.shadow.camera.left = -d;
     L_sun.shadow.camera.right = +d;
     L_sun.shadow.camera.top = +d;
     L_sun.shadow.camera.bottom = -d;
-    L_sun.shadow.mapSize.set(4096, 4096);
+    L_sun.shadow.mapSize.set(2048, 2048);
     this.sceneGraph.add(L_sun);
     if (IS_DEBUG) {
       const dLightHelper = new THREE.DirectionalLightHelper(L_sun, 5);
       this.sceneGraph.add(dLightHelper);
       const helper = new THREE.CameraHelper(L_sun.shadow.camera);
       this.sceneGraph.add(helper);
-    }
+    } */
 
     //+: Fill light — para suavizar sombras muito fortes da DirectionalLight
-    const L_fill = new THREE.DirectionalLight(0xffffff, 0.3);
-    L_fill.position.set(-30, 50, -30);
+   /*  const L_fill = new THREE.DirectionalLight(0xffffff, 0.3);
+    L_fill.position.set(-30, 50, -30); */
     //this.sceneGraph.add(L_fill);
 
     //+: Rim light (ou back light) — separa objetos do fundo
@@ -142,21 +152,33 @@ export class SceneManager {
       this.sceneGraph.add(rimHelper);
     } */
 
-    /* const L_spot = new THREE.SpotLight(
-      0xffffff, //color
-      10000.5, //intensity
-      11, //distance - distancia maxima que a luz atinge
+      const L_spot_pos = new THREE.Vector3(1500, 200, 1200);
+      const L_spot_target = new THREE.Vector3(0, 0, 0);
+    const L_spot_distance = L_spot_pos.distanceTo(L_spot_target)*2;
+    const L_spot = new THREE.SpotLight(
+      0xffffa0, //color
+      40.5, //intensity
+      L_spot_distance, //distance - distancia maxima que a luz atinge
       Math.PI / 6, //angle - angulo de abertura do cone
       0.1, //penumbra - quao suave a transicao do cone
-      2.1 //decay - quao rapido a luz diminui de intensidade
+      0 //decay - quao rapido a luz diminui de intensidade
     );
-    L_spot.position.set(0, 10, 0);
+    L_spot.position.copy(L_spot_pos);
+    L_spot.rotation.set(0, 1, 0);
     L_spot.castShadow = true;
+    L_spot.shadow.mapSize.width = 4096;
+    L_spot.shadow.mapSize.height = 4096;
+    L_spot.shadow.camera.near = 500;
+    L_spot.shadow.camera.far = 4000;
+    L_spot.shadow.camera.fov = 30;
+    L_spot.target.position.copy(L_spot_target);
     this.sceneGraph.add(L_spot);
     if (IS_DEBUG) {
       const spotHelper = new THREE.SpotLightHelper(L_spot);
       this.sceneGraph.add(spotHelper);
-    } */
+      const helper = new THREE.CameraHelper(L_spot.shadow.camera);
+      this.sceneGraph.add(helper);
+    }
     //TODO Novoeiro
     //this.sceneGraph.fog = new THREE.FogExp2(0xabcdef, 0.0015);
     this.sceneGraph.fog = new THREE.Fog(0x87ceeb, 0, 1000); //+: efeito de atmosfera
@@ -174,7 +196,8 @@ export class SceneManager {
       }
     });
     this.sceneGraph.add(object);
-    object.updateMatrixWorld;
+    object.updateMatrixWorld();
+    console.log("Object:", object);
   }
   addToGround(object) {
     if (object.isMesh) {
@@ -189,11 +212,11 @@ export class SceneManager {
     });
     //object.shadowMap.mapSize.set(2048, 2048); //+: para melhorar a qualidade das sombras
     this.sceneGraph.add(object);
-    object.updateMatrixWorld;
+    object.updateMatrixWorld();
   }
   removeFromScene(object) {
     this.sceneGraph.remove(object);
-  }
+  } 
   /**
    * @description
    * Define a posição da câmera para seguir um alvo específico.
@@ -236,6 +259,8 @@ export class SceneManager {
 
     //+:pede ao controls para recalcular as matrizes
     this.controls.update();
+  }
+  updateLights() {
   }
   renderScene() {
     this.renderer.render(this.sceneGraph, this.camera);

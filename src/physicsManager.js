@@ -2,9 +2,6 @@
 import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d";
 
-import { sm } from "gameManager";
-import { Car } from "car";
-
 import { RapierDebugRenderer } from "rapierDebug";
 import { IS_DEBUG } from "debugManager";
 
@@ -22,11 +19,14 @@ export class PhysicsManager {
     this.world = new RAPIER.World(gravity);
     this.meshes = [];
     this.meshMap = new WeakMap();
+    this.instancedMeshes = [];
+    this.instancedMeshMap = new WeakMap();
 
-    // Vetores auxiliares para sincronização
+    // Auxiliares
     this._vector = new THREE.Vector3();
     this._quaternion = new THREE.Quaternion();
     this._matrix = new THREE.Matrix4();
+    this._scale = new THREE.Vector3(1, 1, 1);
     // Clock para o step
     this.clock = new THREE.Clock();
     // Loop de física
@@ -92,7 +92,28 @@ export class PhysicsManager {
         group.userData.physics.collisions = new Set();
       }
     }
+    //group.userData.name = group.name;
+    //group.name = name;
     group.userData.name = name;
+  }
+  addInstancedMesh(instancedMesh, bodies) {
+    //+: Para adicionar uma InstancedMesh com os bodies associados
+    /* this.instancedMeshes.push(instancedMesh);
+    this.instancedMeshMap.set(instancedMesh, bodies); */
+    this.meshes.push(instancedMesh);
+    this.meshMap.set(instancedMesh, bodies);
+    if (!instancedMesh.userData) {
+      instancedMesh.userData = {};
+    }
+    if (!instancedMesh.userData.physics) {
+      instancedMesh.userData.physics = {
+        bodies: bodies,
+        collisions: new Set(),
+      };
+    }
+    instancedMesh.userData.physics.bodies = bodies; // Atualiza os bodies
+
+    instancedMesh.userData.name = instancedMesh.name;
   }
   removeMesh(mesh) {
     //+: Para remover a mesh deste manager
@@ -114,12 +135,13 @@ export class PhysicsManager {
   addHeightfield(mesh, width, depth, heights, scale) {
     //TODO testar isto com o terrain
     const shape = RAPIER.ColliderDesc.heightfield(width, depth, heights, scale);
-
+    console.log("SHAPE HEIGHTFIELD:", shape);
     const bodyDesc = RAPIER.RigidBodyDesc.fixed();
     bodyDesc.setTranslation(mesh.position.x, mesh.position.y, mesh.position.z);
     bodyDesc.setRotation(mesh.quaternion);
 
-    const body = world.createRigidBody(bodyDesc);
+    const body = this.world.createRigidBody(bodyDesc);
+    console.log("BODY HEIGHTFIELD:", body);
     this.world.createCollider(shape, body);
 
     if (!mesh.userData.physics) mesh.userData.physics = {};
@@ -369,8 +391,9 @@ export class PhysicsManager {
       if (!body) continue;
 
       if (obj.isInstancedMesh) {
-        const array = obj.instanceMatrix.array;
+        //console.log ("Syncing InstancedMesh:", obj);
         const bodies = body; // assume um array de bodies
+        /* const array = obj.instanceMatrix.array;
         for (let j = 0; j < bodies.length; j++) {
           const b = bodies[j];
           const pos = b.translation();
@@ -378,6 +401,16 @@ export class PhysicsManager {
           this._matrix
             .compose(pos, this._quaternion, this._vector)
             .toArray(array, j * 16);
+        } */
+        for (let i = 0; i < bodies.length; i++) {
+          const body = bodies[i];
+          const t = body.translation();
+          const r = body.rotation();
+
+          this._vector.set(t.x, t.y, t.z);
+          this._quaternion.set(r.x, r.y, r.z, r.w);
+          this._matrix.compose(this._vector, this._quaternion, this._scale);
+          obj.setMatrixAt(i, this._matrix);
         }
         obj.instanceMatrix.needsUpdate = true;
         obj.computeBoundingSphere();
@@ -385,6 +418,8 @@ export class PhysicsManager {
         obj.position.copy(body.translation());
         obj.quaternion.copy(body.rotation());
       } else {
+        //console.log("Syncing Mesh:", obj);
+        //console.log("Body:", body);
         obj.position.copy(body.translation());
         obj.quaternion.copy(body.rotation());
       }

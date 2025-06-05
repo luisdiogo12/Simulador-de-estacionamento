@@ -77,9 +77,10 @@ export class Tank {
       reset: false,
       accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
       brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
-      appendixRight: 0,
-      appendixUp: 0, //TODO
-      shoot: 0,
+      appendixRight: 0, //rodar base canhao
+      appendixUp: 0, //TODO levantar/baixar cano canhao
+      shoot: 0, // disparar
+      lightsOn: 0, //TODO
     };
     this._hasShotThisPress = false; //+: usar so caso queria canhao semiautomatico
     this.scene = scene;
@@ -212,6 +213,7 @@ export class Tank {
       this.cannonBaseMesh.add(improvMesh);
     }
     this.cannonBaseMesh.add(this.cannonBasePivot);
+    //this.cannonBaseMesh.position.copy(this.options.chassisPosition);
 
     const cannonCylinderMesh = new THREE.Mesh(
       cannonCylinderGeometry,

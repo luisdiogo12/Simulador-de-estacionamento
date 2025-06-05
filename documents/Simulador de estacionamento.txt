@@ -1,0 +1,9 @@
+Simulador de estacionamento
+
+Luís Manuel Trindade Diogo
+
+https://github.com/luisdiogo12/Simulador-de-estacionamento
+
+https://luisdiogo12.github.io/Simulador-de-estacionamento/
+
+http://localhost:5173/Simulador-de-estacionamento/

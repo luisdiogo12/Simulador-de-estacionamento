@@ -59,6 +59,8 @@ export class Bus {
       reset: false,
       accelerateForce: { value: 0, min: -30, max: 30, step: 1 },
       brakeForce: { value: 0, min: 0, max: 1, step: 0.05 },
+      appendixUp: 0, //TODO abrir/fechar porta
+      lightsOn: 0, //TODO
     };
     this.scene = scene;
     this.sceneManager = sceneManager;

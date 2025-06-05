@@ -40,13 +40,14 @@ export default defineConfig({
       mapManager: resolve(__dirname, "src/mapManager.js"), // Atalho para a pasta mapManager
       assetsManager: resolve(__dirname, "src/assetsManager.js"), // Atalho para a pasta assetsManager
       vehicleManager: resolve(__dirname, "src/vehiclesManager.js"), // Atalho para a pasta vehiclesManager
+      ParticlesManager: resolve(__dirname, "src/particlesManager.js"), // Atalho para a pasta particlesManager
       //Map Objects
       terrain: resolve(__dirname, "src/assets/map/terrain.js"), // Atalho para a pasta terrain
       water: resolve(__dirname, "src/assets/map/water.js"), // Atalho para a pasta terrain
       road: resolve(__dirname, "src/assets/map/road.js"), // Atalho para a pasta road
       //Obstacles
-      rock: resolve(__dirname, "src/assets/obstacles/rock.js"), // Atalho para a pasta rock
-      tree: resolve(__dirname, "src/assets/obstacles/tree.js"), // Atalho para a pasta tree
+      rocks: resolve(__dirname, "src/assets/obstacles/rocks.js"), // Atalho para a pasta rock
+      trees: resolve(__dirname, "src/assets/obstacles/trees.js"), // Atalho para a pasta tree
       //Vehicles
       bulldozer: resolve(__dirname, "src/assets/vehicles/bulldozer.js"), // Atalho para a pasta bulldozer
       bus: resolve(__dirname, "src/assets/vehicles/bus.js"), // Atalho para a pasta bus

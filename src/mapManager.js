@@ -6,6 +6,8 @@ import * as RAPIER from "@dimforge/rapier3d";
 import { createTerrain } from "terrain";
 import { createWater } from "water";
 import { assetsManager } from "assetsManager";
+import {createInstancedRocks} from "rocks";
+import { createInstancedTrees } from "trees";
 
 import { IS_DEBUG } from "debugManager";
 
@@ -16,11 +18,21 @@ export class MapManager {
     this.sceneManager = sm;
     this.mapGroup = new THREE.Group(); // Ground, postes, pontes, ...
     this.mapGroup.name = "mapGroup";
+    this.terrainGroup = new THREE.Group(); // Terrain, water, ...
+    this.terrainGroup.name = "terrainGroup";
+    this.roadGroup = new THREE.Group(); // Roads, ...
+    this.roadGroup.name = "roadGroup";
+    this.objectsGroup = new THREE.Group(); // Obstacles, trees, rocks, ...
+    this.objectsGroup.name = "objectsGroup";
+    this.obstaclesGroup = new THREE.Group(); // Obstacles, trees, rocks, ...
+    this.obstaclesGroup.name = "obstaclesGroup";
   }
 
   async load(mapData, vehiclesSpawns, objectsSpawn) {
     this.mapGroup.add(await this.spawnGround(mapData.ground_tiles));
     this.sceneManager.addToGround(this.mapGroup);
+    await this.spawnObjects();
+    await this.spawnObtacles();
     await this.spawnVehicles(vehiclesSpawns);
   }
 
@@ -102,13 +114,10 @@ export class MapManager {
       this.sceneManager
     );
     this.sceneManager.addToScene(terrain2); */
-    const terrain3 = await createTerrain(
-      this.physicsManager.world,
-      this.sceneManager
-    );
-    terrain3.name = "terrain";
-    this.mapGroup.add(terrain3);
-    this.sceneManager.addToScene(terrain3);
+    const terrain = await createTerrain(this.physicsManager, this.sceneManager);
+    terrain.name = "terrain";
+    this.mapGroup.add(terrain);
+    this.sceneManager.addToScene(terrain);
 
     const water = await createWater(
       this.physicsManager.world,
@@ -120,6 +129,60 @@ export class MapManager {
       console.log("Ground spawned:", ground);
     }
     return ground;
+  }
+  async spawnObjects(objectsSpawn) {
+    const instancedTrees1 = createInstancedTrees(
+      this.sceneManager,
+      this.physicsManager,
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(1300, 0, 1300),
+      40,
+      "1"
+    );
+    const instancedTrees2 = createInstancedTrees(
+      this.sceneManager,
+      this.physicsManager,
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(1300, 0, 1300),
+      40,
+      "2"
+    );
+  }
+  async spawnObtacles(objectsSpawn) {
+    const instancedRocks = createInstancedRocks(
+      this.sceneManager,
+      this.physicsManager,
+      new THREE.Vector3(5, 5, -7),
+      new THREE.Vector3(0.5, 0.5, 2),
+      10,
+      0.5,
+      0.1,
+      0,
+      0.5
+    );
+    const instancedRocks2 = createInstancedRocks(
+      this.sceneManager,
+      this.physicsManager,
+      new THREE.Vector3(5, 5, -7),
+      new THREE.Vector3(0.5, 0.5, 2),
+      20,
+      0.4,
+      0.1,
+      0,
+      0.5
+    );
+    const instancedRocks3 = createInstancedRocks(
+      this.sceneManager,
+      this.physicsManager,
+      new THREE.Vector3(5, 5, -7),
+      new THREE.Vector3(0.5, 0.5, 2),
+      30,
+      0.3,
+      0.1,
+      0,
+      0.5
+    );
+    //this.obstaclesGroup.add(instancedRocks);
   }
 
   async spawnVehicles(vehiclesSpawns) {

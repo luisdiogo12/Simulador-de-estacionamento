@@ -6,7 +6,7 @@ import * as THREE from "three";
 
 import { IS_DEBUG } from "debugManager";
 
-const resetMin = new THREE.Vector3(-400, -40, -400);
+const resetMin = new THREE.Vector3(-400, -12, -400);
 export class VehicleManager {
   vehicles;
   activeVehicleIndex;
